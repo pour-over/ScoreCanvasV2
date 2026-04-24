@@ -53,10 +53,10 @@ function CollapsibleSection({ title, defaultOpen = true, count, children }: {
 /** Short display name for sidebar */
 function shortName(project: GameProject): string {
   const map: Record<string, string> = {
-    "journey-2": "Journey 2",
-    "bloodborne-2": "Bloodborne 2",
-    "cod-warfare": "COD: ZoneOps",
-    "meditation": "Meditation",
+    "journey-2": "Woven",
+    "bloodborne-2": "Dark Meowls II",
+    "cod-warfare": "Strikecore",
+    "meditation": "Meditation Retreat",
     "custodial-arts": "Custodial Arts",
     "spreadsheet-quest": "Spreadsheet Quest",
   };

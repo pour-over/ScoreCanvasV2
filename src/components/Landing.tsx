@@ -177,7 +177,7 @@ export function Landing() {
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-canvas-highlight/40 bg-canvas-highlight/10 mb-6">
             <span className="w-1.5 h-1.5 rounded-full bg-canvas-highlight animate-pulse" />
             <span className="text-[11px] font-mono uppercase tracking-wider text-canvas-highlight">
-              Built at PlayStation Studios · 17 years in the trenches
+              Forged in 18 years of AAA game music design
             </span>
           </div>
 
@@ -492,9 +492,9 @@ export function Landing() {
           )}
 
           <p className="text-[10px] text-canvas-muted/60 mt-6 italic">
-            Built by Ted Kocher, Lead Music Designer at PlayStation Studios.
+            Built by Ted Kocher — a Lead Music Designer with 18 years in AAA games.
             <br/>
-            17 years of watching brilliant people suffer through exactly this — at every AAA game company.
+            Eighteen years of watching brilliant people suffer through exactly this at every major studio.
           </p>
         </div>
       </section>
