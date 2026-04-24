@@ -247,11 +247,12 @@ export function GameTutorial({ onDismiss }: GameTutorialProps) {
 
   return (
     <div className={`pointer-events-none transition-opacity duration-300 ${mounted ? "opacity-100" : "opacity-0"}`}>
-      {/* Full-screen overlay with a spotlight cutout */}
+      {/* Full-screen overlay with a spotlight cutout — always visual-only so
+          the highlighted element stays interactive. Blocking clicks outside
+          the spotlight would prevent users from toggling view mode or pressing play. */}
       <svg
-        className="fixed inset-0 z-[10000]"
+        className="fixed inset-0 z-[10000] pointer-events-none"
         width="100%" height="100%"
-        style={{ pointerEvents: currentStep.waitFor === "click" ? "none" : "auto" }}
       >
         <defs>
           <mask id="spotlight-mask">
