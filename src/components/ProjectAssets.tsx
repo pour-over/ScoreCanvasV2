@@ -288,28 +288,28 @@ export function ProjectAssets({ levels, projectName, onClose }: ProjectAssetsPro
                               <div className="text-[9px] font-mono text-canvas-muted uppercase tracking-wider">AI Tools</div>
                               <span className="text-[8px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">Coming v2.5</span>
                             </div>
-                            <div className="space-y-1.5 opacity-70" title="AI generation is on the roadmap — launching alongside Wwise Sync in v2.5">
-                              <button disabled className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-purple-900/20 text-purple-300 border border-purple-500/20 text-left flex items-center gap-2 cursor-not-allowed">
+                            <div className="space-y-1.5" title="Click any button to learn about XITION — AI stem generation coming in v2.5">
+                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new Event("open-xition")); }} title="Learn about XITION — AI stem generation coming in v2.5" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-purple-900/20 text-purple-300 border border-purple-500/20 hover:bg-purple-500/20 hover:border-purple-500/40 text-left flex items-center gap-2 transition-colors">
                                 <span className="text-purple-400">✦</span> Generate Variation
                                 <span className="text-[8px] text-purple-400/60 ml-auto">SOON</span>
                               </button>
-                              <button disabled className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-purple-900/20 text-purple-300 border border-purple-500/20 text-left flex items-center gap-2 cursor-not-allowed">
+                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new Event("open-xition")); }} title="Learn about XITION — AI stem generation coming in v2.5" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-purple-900/20 text-purple-300 border border-purple-500/20 hover:bg-purple-500/20 hover:border-purple-500/40 text-left flex items-center gap-2 transition-colors">
                                 <span className="text-purple-400">⤴</span> Generate Intro Tag
                                 <span className="text-[8px] text-purple-400/60 ml-auto">SOON</span>
                               </button>
-                              <button disabled className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-purple-900/20 text-purple-300 border border-purple-500/20 text-left flex items-center gap-2 cursor-not-allowed">
+                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new Event("open-xition")); }} title="Learn about XITION — AI stem generation coming in v2.5" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-purple-900/20 text-purple-300 border border-purple-500/20 hover:bg-purple-500/20 hover:border-purple-500/40 text-left flex items-center gap-2 transition-colors">
                                 <span className="text-purple-400">⤵</span> Generate End Tag
                                 <span className="text-[8px] text-purple-400/60 ml-auto">SOON</span>
                               </button>
-                              <button disabled className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-purple-900/20 text-purple-300 border border-purple-500/20 text-left flex items-center gap-2 cursor-not-allowed">
+                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new Event("open-xition")); }} title="Learn about XITION — AI stem generation coming in v2.5" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-purple-900/20 text-purple-300 border border-purple-500/20 hover:bg-purple-500/20 hover:border-purple-500/40 text-left flex items-center gap-2 transition-colors">
                                 <span className="text-purple-400">↔</span> Generate Transition
                                 <span className="text-[8px] text-purple-400/60 ml-auto">SOON</span>
                               </button>
-                              <button disabled className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-amber-900/20 text-amber-300 border border-amber-500/20 text-left flex items-center gap-2 cursor-not-allowed">
+                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new Event("open-xition")); }} title="Learn about XITION — AI stem generation coming in v2.5" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-amber-900/20 text-amber-300 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 text-left flex items-center gap-2 transition-colors">
                                 <span className="text-amber-400">≡</span> Split Stems
                                 <span className="text-[8px] text-amber-400/60 ml-auto">SOON</span>
                               </button>
-                              <button disabled className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-cyan-900/20 text-cyan-300 border border-cyan-500/20 text-left flex items-center gap-2 cursor-not-allowed">
+                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new Event("open-xition")); }} title="Learn about XITION — AI analysis coming in v2.5" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-cyan-900/20 text-cyan-300 border border-cyan-500/20 hover:bg-cyan-500/20 hover:border-cyan-500/40 text-left flex items-center gap-2 transition-colors">
                                 <span className="text-cyan-400">♪</span> Analyze &amp; Tag
                                 <span className="text-[8px] text-cyan-400/60 ml-auto">SOON</span>
                               </button>

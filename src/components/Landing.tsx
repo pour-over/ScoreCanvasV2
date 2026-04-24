@@ -344,28 +344,80 @@ export function Landing() {
         </div>
       </section>
 
-      {/* ═══ Roadmap / Wwise Sync Teaser ═══ */}
-      <section id="roadmap" className="py-24 px-6 border-t border-canvas-accent/20 bg-gradient-to-b from-transparent via-[#4ecdc4]/5 to-transparent">
-        <div className="max-w-4xl mx-auto">
+      {/* ═══ Roadmap: XITION + Wwise Sync ═══ */}
+      <section id="roadmap" className="py-24 px-6 border-t border-canvas-accent/20 bg-gradient-to-b from-transparent via-purple-500/5 to-transparent">
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-canvas-highlight mb-3">On the Roadmap</p>
-            <h2 className="text-3xl font-black mb-3">Live Wwise Sync.</h2>
+            <h2 className="text-3xl md:text-4xl font-black mb-3">Two bets we're building toward.</h2>
             <p className="text-sm text-canvas-muted max-w-xl mx-auto">
-              The real handoff. Not a template file — a live connection to your session.
+              Live middleware sync. AI-generated score variations. Both shipping next.
             </p>
           </div>
 
-          <div className="bg-[#0d0d1a]/80 border border-canvas-highlight/40 rounded-2xl p-8 relative overflow-hidden">
-            <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-canvas-highlight/20 border border-canvas-highlight/40">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-canvas-highlight">Coming Soon</span>
+          {/* ─── XITION — headline roadmap card ─── */}
+          <div className="bg-[#0d0d1a]/80 border border-purple-500/50 rounded-2xl p-8 relative overflow-hidden mb-6">
+            <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-300">Coming v2.5</span>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
-                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#4ecdc4] mb-2">v2.5 · Q3</div>
-                <h3 className="text-2xl font-black mb-3">Connect directly to your Wwise session</h3>
+                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-purple-300/80 mb-2">XITION · AI Stem Generation</div>
+                <h3 className="text-2xl md:text-3xl font-black mb-3 leading-tight">
+                  <span className="bg-gradient-to-r from-purple-300 to-cyan-300 bg-clip-text text-transparent">A clean theme in.</span><br/>
+                  An entire score out.
+                </h3>
+                <p className="text-sm text-canvas-muted leading-relaxed mb-3">
+                  Every adaptive music system is really one question asked a hundred times: <span className="text-canvas-text font-semibold">"How do I get from X music to Y music — cleanly?"</span>
+                </p>
                 <p className="text-sm text-canvas-muted leading-relaxed mb-4">
-                  Design the graph in Score Canvas. Audition in-browser. Then push music states, transitions, and RTPCs straight into your live Wwise project — no re-import, no template shuffling.
+                  XITION answers it. AI-generated stem variations, custom intros, custom endings, and — yes — custom transitions. Any genre. Any direction. Instantly, for style ideation.
+                </p>
+                <ul className="space-y-1.5 text-[12px] text-canvas-muted">
+                  <li className="flex items-start gap-2"><span className="text-purple-400 mt-0.5">✦</span> Stem variations — "less intense, swap strings for synths"</li>
+                  <li className="flex items-start gap-2"><span className="text-purple-400 mt-0.5">⤴</span> Matched intros &amp; endings — key, BPM, vibe auto-aligned</li>
+                  <li className="flex items-start gap-2"><span className="text-purple-400 mt-0.5">↔</span> Custom transitions — actual musical writing, not crossfades</li>
+                  <li className="flex items-start gap-2"><span className="text-purple-400 mt-0.5">≡</span> AI stem split — take a mix, get back isolated layers</li>
+                </ul>
+                <div className="mt-4 pt-3 border-t border-purple-500/20 text-[11px] text-purple-200/70 italic">
+                  The most bang-for-buck music tool that exists.
+                </div>
+              </div>
+
+              <div className="bg-[#0a0a18] border border-purple-500/30 rounded-lg p-5 font-mono text-[11px]">
+                <div className="flex items-center gap-2 mb-3 pb-2 border-b border-canvas-accent/30">
+                  <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+                  <span className="text-purple-300 font-bold">XITION · generating</span>
+                  <span className="text-canvas-muted ml-auto text-[9px]">clean_theme.wav</span>
+                </div>
+                <div className="space-y-1.5 text-canvas-muted">
+                  <div>✓ <span className="text-canvas-highlight">variation_01_low_intensity</span> <span className="text-green-400">ready</span></div>
+                  <div>✓ <span className="text-canvas-highlight">variation_02_drums_only</span> <span className="text-green-400">ready</span></div>
+                  <div>✓ <span className="text-canvas-highlight">variation_03_orchestral_swap</span> <span className="text-green-400">ready</span></div>
+                  <div>→ <span className="text-canvas-highlight">intro_auto_matched</span> <span className="text-yellow-400">generating...</span></div>
+                  <div>→ <span className="text-canvas-highlight">xition_to_explore</span> <span className="text-yellow-400">generating...</span></div>
+                  <div>→ <span className="text-canvas-highlight">endtag_cadential</span> <span className="text-canvas-muted">queued</span></div>
+                  <div className="text-[10px] text-canvas-muted/60 mt-2 pt-2 border-t border-canvas-accent/20">
+                    6 variants from 1 source · ~4s avg
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ─── Wwise Live Sync — second card, equal weight ─── */}
+          <div className="bg-[#0d0d1a]/80 border border-canvas-highlight/40 rounded-2xl p-8 relative overflow-hidden">
+            <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-canvas-highlight/20 border border-canvas-highlight/40">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-canvas-highlight">Coming v2.5</span>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#4ecdc4] mb-2">Live Wwise Sync</div>
+                <h3 className="text-2xl font-black mb-3">Connect directly to your Wwise session.</h3>
+                <p className="text-sm text-canvas-muted leading-relaxed mb-4">
+                  The real handoff. Not a template file — a live connection to your session. Design in Score Canvas, audition in-browser, push to Wwise with one click.
                 </p>
                 <ul className="space-y-1.5 text-[12px] text-canvas-muted">
                   <li className="flex items-start gap-2"><span className="text-canvas-highlight mt-0.5">→</span> Sync via WAAPI (Wwise Authoring API)</li>
@@ -390,9 +442,9 @@ export function Landing() {
             </div>
           </div>
 
-          <div className="mt-6 text-center">
+          <div className="mt-8 text-center">
             <p className="text-[11px] text-canvas-muted/60">
-              Want early access to Wwise Sync? <a href="#waitlist" className="text-canvas-highlight hover:underline">Join the waitlist</a> — first cohort gets it at cost.
+              First cohort gets both features <span className="text-canvas-highlight font-semibold">at cost</span> when they ship. <a href="#waitlist" className="text-canvas-highlight hover:underline">Join the waitlist →</a>
             </p>
           </div>
         </div>
