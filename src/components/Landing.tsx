@@ -269,7 +269,7 @@ export function Landing() {
             <div>
               <div className="text-4xl font-black text-canvas-highlight mb-2">6</div>
               <div className="text-xs font-mono uppercase tracking-wider text-canvas-muted">Full demo projects shipping now</div>
-              <div className="text-[10px] text-canvas-muted/60 mt-1">Wanderspire, Hoontborne, Strikecore, more</div>
+              <div className="text-[10px] text-canvas-muted/60 mt-1">Woven, Dark Meowls II, Strikecore, more</div>
             </div>
           </div>
         </div>

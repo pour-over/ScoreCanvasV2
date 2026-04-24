@@ -34,7 +34,7 @@ export function WwiseSyncPanel({ onClose }: WwiseSyncPanelProps) {
             <div className="flex items-center gap-2 mb-3 pb-2 border-b border-canvas-accent/30">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
               <span className="text-green-400 font-bold">● CONNECTED</span>
-              <span className="text-canvas-muted ml-auto text-[9px]">hoontborne.wproj</span>
+              <span className="text-canvas-muted ml-auto text-[9px]">dark_meowls_2.wproj</span>
             </div>
             <div className="space-y-1.5 text-canvas-muted">
               <div>→ <span className="text-canvas-highlight">MSC_Yarnball_Explore</span> <span className="text-green-400">synced</span></div>

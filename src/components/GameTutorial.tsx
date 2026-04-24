@@ -12,7 +12,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useViewMode } from "../context/ViewModeContext";
 
-const STORAGE_KEY = "score-canvas-v2-tutorial-seen";
+// Bumped from v2-tutorial-seen when transition-check + email steps were added,
+// so returning users see the updated tutorial.
+const STORAGE_KEY = "score-canvas-v2-tutorial-seen-v2";
 
 export function hasTutorialBeenSeen(): boolean {
   try { return localStorage.getItem(STORAGE_KEY) === "true"; } catch { return false; }
@@ -30,7 +32,7 @@ interface Step {
   narrator: string;
   body: string;
   targetSelector?: string;      // CSS selector of the element to spotlight
-  waitFor?: "click" | "viewMode:detailed" | "viewMode:simple" | "next";
+  waitFor?: "click" | "viewMode:detailed" | "viewMode:simple" | "next" | "email";
   highlightPadding?: number;
   cardPosition?: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center";
   actionLabel?: string;         // Text for the "got it / next" button
@@ -77,6 +79,17 @@ const STEPS: Step[] = [
     actionLabel: "Waiting for you to press Play...",
   },
   {
+    id: "transition-check",
+    title: "Transition Check — the secret weapon.",
+    narrator: "Playback Mode",
+    body: "Click this toggle to switch from 'Full Score' to 'Transition Check' mode. Instead of playing each node in full, you'll hear only the first and last 10 seconds — so you can audition every crossfade and seam in the system in about a minute. No one else has this.",
+    targetSelector: "[data-tour='mode-toggle']",
+    waitFor: "click",
+    cardPosition: "top-right",
+    actionLabel: "Click the toggle to try it...",
+    highlightPadding: 10,
+  },
+  {
     id: "detail-toggle",
     title: "Now let's see the details.",
     narrator: "View Mode",
@@ -103,16 +116,15 @@ const STEPS: Step[] = [
     targetSelector: "[data-tour='integrations']",
     waitFor: "next",
     cardPosition: "bottom-left",
-    actionLabel: "Final step →",
+    actionLabel: "One last thing →",
   },
   {
-    id: "done",
-    title: "You're ready.",
-    narrator: "Narrator",
-    body: "You've seen the core loop. Now go explore — switch projects, tweak stems, connect nodes, play sequences. Press ? in the top-right anytime to replay this tutorial.",
-    waitFor: "next",
+    id: "email",
+    title: "Stay in the loop.",
+    narrator: "Early Access",
+    body: "Score Canvas is in active development. Drop your email to get early access to Wwise Live Sync (at cost, for the first cohort) and a heads-up when new projects ship. Then you can start exploring.",
+    waitFor: "email",
     cardPosition: "center",
-    actionLabel: "Start exploring →",
   },
 ];
 
@@ -125,6 +137,9 @@ export function GameTutorial({ onDismiss }: GameTutorialProps) {
   const [spotlight, setSpotlight] = useState<Rect | null>(null);
   const [typed, setTyped] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailSubmitting, setEmailSubmitting] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
   const { mode } = useViewMode();
   const viewModeRef = useRef(mode);
   const currentStep = STEPS[stepIndex];
@@ -224,6 +239,35 @@ export function GameTutorial({ onDismiss }: GameTutorialProps) {
   };
 
   const skip = () => finish();
+
+  // Submit email to Netlify Forms (same form name as Landing page)
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !/.+@.+\..+/.test(email)) {
+      setEmailError("Please enter a valid email.");
+      return;
+    }
+    setEmailSubmitting(true);
+    setEmailError(null);
+    try {
+      const formData = new URLSearchParams();
+      formData.append("form-name", "waitlist");
+      formData.append("email", email);
+      formData.append("source", "tutorial");
+      await fetch("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: formData.toString(),
+      });
+      // success — advance (this is the last step, so it will finish)
+      setEmailSubmitting(false);
+      finish();
+    } catch {
+      // still let them through — don't block on network error
+      setEmailSubmitting(false);
+      finish();
+    }
+  };
 
   // Card position
   const cardStyle = useMemo<React.CSSProperties>(() => {
@@ -337,25 +381,59 @@ export function GameTutorial({ onDismiss }: GameTutorialProps) {
               )}
             </p>
 
-            {/* Action button */}
-            <div className="mt-4 flex items-center gap-2">
+            {/* Action area */}
+            <div className="mt-4 flex flex-col gap-2">
               {currentStep.waitFor === "next" && (
                 <button
                   onClick={advance}
-                  className="flex-1 px-4 py-2.5 text-xs font-bold rounded-lg bg-canvas-highlight text-white hover:bg-canvas-highlight/80 transition-colors shadow-lg shadow-canvas-highlight/25"
+                  className="w-full px-4 py-2.5 text-xs font-bold rounded-lg bg-canvas-highlight text-white hover:bg-canvas-highlight/80 transition-colors shadow-lg shadow-canvas-highlight/25"
                 >
                   {currentStep.actionLabel ?? "Next →"}
                 </button>
               )}
               {currentStep.waitFor === "click" && (
-                <div className="flex-1 px-4 py-2.5 text-xs font-mono rounded-lg bg-canvas-accent/20 border border-canvas-accent/40 text-canvas-highlight animate-pulse text-center">
+                <div className="w-full px-4 py-2.5 text-xs font-mono rounded-lg bg-canvas-accent/20 border border-canvas-accent/40 text-canvas-highlight animate-pulse text-center">
                   {currentStep.actionLabel ?? "Click the highlighted element..."}
                 </div>
               )}
               {(currentStep.waitFor === "viewMode:detailed" || currentStep.waitFor === "viewMode:simple") && (
-                <div className="flex-1 px-4 py-2.5 text-xs font-mono rounded-lg bg-canvas-accent/20 border border-canvas-accent/40 text-canvas-highlight animate-pulse text-center">
+                <div className="w-full px-4 py-2.5 text-xs font-mono rounded-lg bg-canvas-accent/20 border border-canvas-accent/40 text-canvas-highlight animate-pulse text-center">
                   {currentStep.actionLabel ?? "Change the view mode..."}
                 </div>
+              )}
+              {currentStep.waitFor === "email" && (
+                <form onSubmit={handleEmailSubmit} className="flex flex-col gap-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      name="email"
+                      value={email}
+                      onChange={(e) => { setEmail(e.target.value); setEmailError(null); }}
+                      placeholder="you@studio.com"
+                      required
+                      autoFocus
+                      disabled={emailSubmitting}
+                      className="flex-1 bg-[#0d0d1a] border border-canvas-accent rounded-lg px-3 py-2 text-xs text-canvas-text placeholder:text-canvas-muted/50 focus:outline-none focus:border-canvas-highlight disabled:opacity-50"
+                    />
+                    <button
+                      type="submit"
+                      disabled={emailSubmitting}
+                      className="px-4 py-2 text-xs font-bold rounded-lg bg-canvas-highlight text-white hover:bg-canvas-highlight/80 disabled:opacity-60 disabled:cursor-wait transition-colors shadow-lg shadow-canvas-highlight/25 whitespace-nowrap"
+                    >
+                      {emailSubmitting ? "Submitting..." : "Join & Explore →"}
+                    </button>
+                  </div>
+                  {emailError && (
+                    <div className="text-[10px] text-red-400 font-mono">{emailError}</div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={skip}
+                    className="text-[10px] text-canvas-muted/60 hover:text-canvas-muted transition-colors self-center mt-1"
+                  >
+                    Skip and just try the demo
+                  </button>
+                </form>
               )}
             </div>
           </div>
