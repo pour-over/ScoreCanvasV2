@@ -1,16 +1,16 @@
 /**
- * XitionPanel — roadmap teaser for the AI stem generation feature.
+ * SeguePanel — roadmap teaser for the AI stem generation feature.
  *
  * The pitch: "You provide a clean theme. You get an entire score."
  * AI-generated stem variations, intros, endings, transitions — any genre,
  * instantly, for style ideation. Powered by Suno via Kie.ai (planned).
  */
 
-interface XitionPanelProps {
+interface SeguePanelProps {
   onClose: () => void;
 }
 
-export function XitionPanel({ onClose }: XitionPanelProps) {
+export function SeguePanel({ onClose }: SeguePanelProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-[#0d0d1a] border border-purple-500/50 rounded-xl shadow-2xl w-[720px] max-w-[94vw] max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
@@ -22,8 +22,10 @@ export function XitionPanel({ onClose }: XitionPanelProps) {
             </svg>
           </div>
           <div className="flex-1">
-            <h2 className="text-base font-black text-canvas-text tracking-tight">XITION — Solving the X → Y Music Problem</h2>
-            <div className="text-[10px] font-mono text-purple-300/80 uppercase tracking-wider">A clean theme in. An entire score out.</div>
+            <h2 className="text-base font-black text-canvas-text tracking-tight">SEGUE — Solving the X → Y Music Problem</h2>
+            <div className="text-[10px] font-mono text-purple-300/80 uppercase tracking-wider">
+              <span className="italic">seg-way</span> · n. a smooth transition from one piece of music to another
+            </div>
           </div>
           <div className="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40">
             <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-300">Coming v2.5</span>
@@ -41,7 +43,7 @@ export function XitionPanel({ onClose }: XitionPanelProps) {
               <span className="text-purple-300 font-bold"> "How do I get from X music to Y music — cleanly?"</span>
             </div>
             <div className="text-[11px] text-canvas-muted mt-2 italic">
-              XITION is built to answer that question. Intros, endings, bridges, stem variations — all AI-generated from your source theme, purpose-built to live in a state machine.
+              SEGUE is built to answer that question. Intros, endings, bridges, stem variations — all AI-generated from your source theme, purpose-built to live in a state machine.
             </div>
           </div>
 
@@ -67,7 +69,7 @@ export function XitionPanel({ onClose }: XitionPanelProps) {
 
           {/* What it generates — capability grid */}
           <div>
-            <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-purple-300/80 mb-3">What XITION Generates</div>
+            <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-purple-300/80 mb-3">What SEGUE Generates</div>
             <div className="grid grid-cols-2 gap-2.5">
               <div className="bg-[#0a0a18] border border-canvas-accent/40 rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-1.5">
@@ -95,7 +97,7 @@ export function XitionPanel({ onClose }: XitionPanelProps) {
                   <span className="text-purple-400 text-lg">↔</span>
                   <div className="text-[12px] font-bold text-canvas-text">Custom Transitions</div>
                 </div>
-                <div className="text-[10px] text-canvas-muted leading-relaxed">XITION-branded: seamless bridges between any two states. Not just crossfades — actual musical writing.</div>
+                <div className="text-[10px] text-canvas-muted leading-relaxed">Musical bridges: seamless bridges between any two states. Not just crossfades — actual musical writing.</div>
               </div>
               <div className="bg-[#0a0a18] border border-canvas-accent/40 rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-1.5">
@@ -118,7 +120,7 @@ export function XitionPanel({ onClose }: XitionPanelProps) {
           <div className="bg-[#0a0a18] border border-purple-500/30 rounded-lg p-4 font-mono text-[11px]">
             <div className="flex items-center gap-2 mb-3 pb-2 border-b border-canvas-accent/30">
               <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-              <span className="text-purple-300 font-bold">XITION · generating stem variations</span>
+              <span className="text-purple-300 font-bold">SEGUE · generating stem variations</span>
               <span className="text-canvas-muted ml-auto text-[9px]">input: clean_theme_combat.wav</span>
             </div>
             <div className="space-y-1 text-canvas-muted">
@@ -126,7 +128,7 @@ export function XitionPanel({ onClose }: XitionPanelProps) {
               <div>✓ <span className="text-canvas-highlight">theme_variation_02_drums_only.wav</span> <span className="text-green-400">ready (2.8s)</span></div>
               <div>✓ <span className="text-canvas-highlight">theme_variation_03_orchestral_swap.wav</span> <span className="text-green-400">ready (4.1s)</span></div>
               <div>→ <span className="text-canvas-highlight">theme_intro_auto_matched.wav</span> <span className="text-yellow-400">generating...</span></div>
-              <div>→ <span className="text-canvas-highlight">theme_xition_to_explore.wav</span> <span className="text-yellow-400">generating...</span></div>
+              <div>→ <span className="text-canvas-highlight">theme_segue_to_explore.wav</span> <span className="text-yellow-400">generating...</span></div>
               <div>→ <span className="text-canvas-highlight">theme_endtag_cadential.wav</span> <span className="text-canvas-muted">queued</span></div>
               <div className="text-[10px] text-canvas-muted/60 mt-2 pt-2 border-t border-canvas-accent/20">
                 6 variants from 1 source · ~4s avg · suno/v4 via kie.ai
@@ -153,7 +155,7 @@ export function XitionPanel({ onClose }: XitionPanelProps) {
           {/* CTA */}
           <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4 text-center">
             <div className="text-[12px] text-canvas-text mb-2">
-              First cohort gets XITION <span className="font-bold text-purple-300">at cost</span> when it ships.
+              First cohort gets SEGUE <span className="font-bold text-purple-300">at cost</span> when it ships.
             </div>
             <a
               href="/#waitlist"

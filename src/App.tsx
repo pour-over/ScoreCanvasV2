@@ -8,7 +8,7 @@ import { ExportModal } from "./components/ExportModal";
 import { StatusReport } from "./components/StatusReport";
 import { GameTutorial, hasTutorialBeenSeen } from "./components/GameTutorial";
 import { WwiseSyncPanel } from "./components/WwiseSyncPanel";
-import { XitionPanel } from "./components/XitionPanel";
+import { SeguePanel } from "./components/SeguePanel";
 import { ViewModeProvider } from "./context/ViewModeContext";
 import { Landing } from "./components/Landing";
 import { stopAudition } from "./audio/synth";
@@ -27,13 +27,13 @@ function ScoreCanvasApp() {
   const [showStatusReport, setShowStatusReport] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
   const [showWwiseSync, setShowWwiseSync] = useState(false);
-  const [showXition, setShowXition] = useState(false);
+  const [showSegue, setShowSegue] = useState(false);
 
-  // Listen for window event so any mock AI button anywhere in the app can open XITION
+  // Listen for window event so any mock AI button anywhere in the app can open SEGUE
   useEffect(() => {
-    const handler = () => setShowXition(true);
-    window.addEventListener("open-xition", handler);
-    return () => window.removeEventListener("open-xition", handler);
+    const handler = () => setShowSegue(true);
+    window.addEventListener("open-segue", handler);
+    return () => window.removeEventListener("open-segue", handler);
   }, []);
 
   // Launch GameTutorial on first visit (localStorage-gated)
@@ -66,7 +66,7 @@ function ScoreCanvasApp() {
         onOpenStatusReport={() => setShowStatusReport(true)}
         onStartTour={() => setShowTutorial(true)}
         onOpenWwiseSync={() => setShowWwiseSync(true)}
-        onOpenXition={() => setShowXition(true)}
+        onOpenSegue={() => setShowSegue(true)}
       />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
@@ -97,8 +97,8 @@ function ScoreCanvasApp() {
       {showWwiseSync && (
         <WwiseSyncPanel onClose={() => setShowWwiseSync(false)} />
       )}
-      {showXition && (
-        <XitionPanel onClose={() => setShowXition(false)} />
+      {showSegue && (
+        <SeguePanel onClose={() => setShowSegue(false)} />
       )}
       {/* Waitlist CTA — fixed bottom-right */}
       <a

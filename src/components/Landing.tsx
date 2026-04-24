@@ -344,7 +344,7 @@ export function Landing() {
         </div>
       </section>
 
-      {/* ═══ Roadmap: XITION + Wwise Sync ═══ */}
+      {/* ═══ Roadmap: SEGUE + Wwise Sync ═══ */}
       <section id="roadmap" className="py-24 px-6 border-t border-canvas-accent/20 bg-gradient-to-b from-transparent via-purple-500/5 to-transparent">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
@@ -355,7 +355,7 @@ export function Landing() {
             </p>
           </div>
 
-          {/* ─── XITION — headline roadmap card ─── */}
+          {/* ─── SEGUE — headline roadmap card ─── */}
           <div className="bg-[#0d0d1a]/80 border border-purple-500/50 rounded-2xl p-8 relative overflow-hidden mb-6">
             <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/40">
               <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-300">Coming v2.5</span>
@@ -363,7 +363,7 @@ export function Landing() {
 
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
-                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-purple-300/80 mb-2">XITION · AI Stem Generation</div>
+                <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-purple-300/80 mb-2">SEGUE · AI Stem Generation</div>
                 <h3 className="text-2xl md:text-3xl font-black mb-3 leading-tight">
                   <span className="bg-gradient-to-r from-purple-300 to-cyan-300 bg-clip-text text-transparent">A clean theme in.</span><br/>
                   An entire score out.
@@ -372,7 +372,7 @@ export function Landing() {
                   Every adaptive music system is really one question asked a hundred times: <span className="text-canvas-text font-semibold">"How do I get from X music to Y music — cleanly?"</span>
                 </p>
                 <p className="text-sm text-canvas-muted leading-relaxed mb-4">
-                  XITION answers it. AI-generated stem variations, custom intros, custom endings, and — yes — custom transitions. Any genre. Any direction. Instantly, for style ideation.
+                  SEGUE answers it. AI-generated stem variations, custom intros, custom endings, and — yes — custom transitions. Any genre. Any direction. Instantly, for style ideation.
                 </p>
                 <ul className="space-y-1.5 text-[12px] text-canvas-muted">
                   <li className="flex items-start gap-2"><span className="text-purple-400 mt-0.5">✦</span> Stem variations — "less intense, swap strings for synths"</li>
@@ -388,7 +388,7 @@ export function Landing() {
               <div className="bg-[#0a0a18] border border-purple-500/30 rounded-lg p-5 font-mono text-[11px]">
                 <div className="flex items-center gap-2 mb-3 pb-2 border-b border-canvas-accent/30">
                   <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-                  <span className="text-purple-300 font-bold">XITION · generating</span>
+                  <span className="text-purple-300 font-bold">SEGUE · generating</span>
                   <span className="text-canvas-muted ml-auto text-[9px]">clean_theme.wav</span>
                 </div>
                 <div className="space-y-1.5 text-canvas-muted">
@@ -396,7 +396,7 @@ export function Landing() {
                   <div>✓ <span className="text-canvas-highlight">variation_02_drums_only</span> <span className="text-green-400">ready</span></div>
                   <div>✓ <span className="text-canvas-highlight">variation_03_orchestral_swap</span> <span className="text-green-400">ready</span></div>
                   <div>→ <span className="text-canvas-highlight">intro_auto_matched</span> <span className="text-yellow-400">generating...</span></div>
-                  <div>→ <span className="text-canvas-highlight">xition_to_explore</span> <span className="text-yellow-400">generating...</span></div>
+                  <div>→ <span className="text-canvas-highlight">segue_to_explore</span> <span className="text-yellow-400">generating...</span></div>
                   <div>→ <span className="text-canvas-highlight">endtag_cadential</span> <span className="text-canvas-muted">queued</span></div>
                   <div className="text-[10px] text-canvas-muted/60 mt-2 pt-2 border-t border-canvas-accent/20">
                     6 variants from 1 source · ~4s avg

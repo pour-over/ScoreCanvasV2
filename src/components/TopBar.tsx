@@ -12,7 +12,7 @@ interface TopBarProps {
   onOpenStatusReport: () => void;
   onStartTour?: () => void;
   onOpenWwiseSync?: () => void;
-  onOpenXition?: () => void;
+  onOpenSegue?: () => void;
 }
 
 export function TopBar({
@@ -27,7 +27,7 @@ export function TopBar({
   onOpenStatusReport,
   onStartTour,
   onOpenWwiseSync,
-  onOpenXition,
+  onOpenSegue,
 }: TopBarProps) {
   const { mode } = useViewMode();
   const isSimple = mode === "simple";
@@ -73,15 +73,15 @@ export function TopBar({
 
       <div className="flex-1" />
 
-      {/* Integrations — XITION and Wwise always shown (the two roadmap heroes); rest only in detailed mode */}
+      {/* Integrations — SEGUE and Wwise always shown (the two roadmap heroes); rest only in detailed mode */}
       <div data-tour="integrations" className="flex items-center gap-1.5">
         <button
-          onClick={onOpenXition}
-          title="XITION AI Stem Generation — Coming Soon"
+          onClick={onOpenSegue}
+          title="SEGUE — AI Stem Generation — Coming Soon"
           className="px-2 py-0.5 text-[10px] font-bold rounded-full border transition-colors cursor-pointer bg-purple-600/20 text-purple-300 border-purple-500/40 hover:bg-purple-600/40 hover:text-purple-200 flex items-center gap-1.5"
         >
           <span className="font-mono">✦</span>
-          <span className="font-normal opacity-80">XITION</span>
+          <span className="font-normal opacity-80">SEGUE</span>
           <span className="ml-0.5 px-1 rounded bg-purple-500/20 text-purple-200 text-[8px] font-mono">SOON</span>
         </button>
         <button

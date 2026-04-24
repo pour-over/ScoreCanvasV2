@@ -163,8 +163,8 @@ export function StemEditor({ asset, expanded, onExpand, onCollapse }: StemEditor
           <div className="flex items-center gap-2">
             {/* AI Generate buttons — honest labeling: coming v2.5 */}
             <button
-              title="Learn about XITION — AI generation coming in v2.5"
-              onClick={() => window.dispatchEvent(new Event("open-xition"))}
+              title="Learn about SEGUE — AI generation coming in v2.5"
+              onClick={() => window.dispatchEvent(new Event("open-segue"))}
               className="px-2.5 py-1 text-[10px] font-semibold rounded-md bg-purple-900/30 text-purple-300 border border-purple-500/30 hover:bg-purple-500/20 hover:border-purple-500/50 transition-colors flex items-center gap-1"
             >
               <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l2 5h5l-4 3 1.5 5L8 11l-4.5 3L5 9 1 6h5z"/></svg>
@@ -172,8 +172,8 @@ export function StemEditor({ asset, expanded, onExpand, onCollapse }: StemEditor
               <span className="ml-0.5 text-[8px] font-mono bg-purple-500/30 rounded px-1 text-purple-200">SOON</span>
             </button>
             <button
-              title="Learn about XITION — AI generation coming in v2.5"
-              onClick={() => window.dispatchEvent(new Event("open-xition"))}
+              title="Learn about SEGUE — AI generation coming in v2.5"
+              onClick={() => window.dispatchEvent(new Event("open-segue"))}
               className="px-2.5 py-1 text-[10px] font-semibold rounded-md bg-purple-900/30 text-purple-300 border border-purple-500/30 hover:bg-purple-500/20 hover:border-purple-500/50 transition-colors flex items-center gap-1"
             >
               <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1l2 5h5l-4 3 1.5 5L8 11l-4.5 3L5 9 1 6h5z"/></svg>
@@ -253,10 +253,10 @@ export function StemEditor({ asset, expanded, onExpand, onCollapse }: StemEditor
                     {stem.name}
                   </span>
 
-                  {/* AI Generate Variation — opens XITION panel */}
+                  {/* AI Generate Variation — opens SEGUE panel */}
                   <button
-                    onClick={() => window.dispatchEvent(new Event("open-xition"))}
-                    title="Learn about XITION — AI variation coming in v2.5"
+                    onClick={() => window.dispatchEvent(new Event("open-segue"))}
+                    title="Learn about SEGUE — AI variation coming in v2.5"
                     className="px-2 py-0.5 text-[9px] font-semibold rounded border flex items-center gap-1 bg-purple-900/20 text-purple-400/70 border-purple-500/20 hover:bg-purple-500/20 hover:text-purple-300 hover:border-purple-500/50 transition-colors"
                   >
                     <svg width="8" height="8" viewBox="0 0 16 16" fill="currentColor">
