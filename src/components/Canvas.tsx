@@ -110,9 +110,14 @@ export function Canvas({ level, projectId }: CanvasProps) {
   const { mode, toggle: toggleViewMode } = useViewMode();
 
   useEffect(() => {
-    setNodes(level.nodes);
+    // Auto-clean layout on first load of every level — uses the same BFS
+    // algorithm as the Clean Up View button so the canvas is tidy and
+    // left-to-right from the start.
+    const cleaned = autoLayout(level.nodes, level.edges);
+    setNodes(cleaned);
     setEdges(level.edges);
-    setTimeout(() => fitView({ padding: 0.15, duration: 300 }), 50);
+    // Slightly generous padding so the graph breathes
+    setTimeout(() => fitView({ padding: 0.22, duration: 400 }), 60);
   }, [level.id, level.nodes, level.edges, setNodes, setEdges, fitView]);
 
   const onConnect = useCallback(
@@ -285,7 +290,15 @@ export function Canvas({ level, projectId }: CanvasProps) {
     }
 
     const category: AssetCategory = n.type === "transition" ? "transition" : "loop";
-    auditionAsset({ id: n.id, category, key: "Dm", bpm: 120, audioFile, playbackMode: "full" }).then((durationMs) => {
+    const isQuick = sequenceQuickModeRef.current;
+    auditionAsset({
+      id: n.id,
+      category,
+      key: "Dm",
+      bpm: 120,
+      audioFile,
+      playbackMode: isQuick && n.type !== "transition" ? "transition" : "full",
+    }).then((durationMs) => {
       let i = targetIndex + 1;
       function playNext() {
         if (sequenceAbort.current || i >= playOrder.length) {
@@ -313,12 +326,22 @@ export function Canvas({ level, projectId }: CanvasProps) {
         setSequenceNodeType(nn.type ?? null);
         setSequenceNodeIndex(i);
         const cat: AssetCategory = nn.type === "transition" ? "transition" : "loop";
-        auditionAsset({ id: nn.id, category: cat, key: "Dm", bpm: 120, audioFile: af, playbackMode: "full" }).then((dur) => {
+        const quick = sequenceQuickModeRef.current;
+        auditionAsset({
+          id: nn.id,
+          category: cat,
+          key: "Dm",
+          bpm: 120,
+          audioFile: af,
+          playbackMode: quick && nn.type !== "transition" ? "transition" : "full",
+        }).then((dur) => {
           i++;
-          setTimeout(playNext, (dur > 0 ? dur : 1000) + 300);
+          const maxMs = quick ? Math.min(dur, 20500) : dur;
+          setTimeout(playNext, (maxMs > 0 ? maxMs : 1000) + 300);
         });
       }
-      setTimeout(playNext, (durationMs > 0 ? durationMs : 1000) + 300);
+      const firstMax = isQuick ? Math.min(durationMs, 20500) : durationMs;
+      setTimeout(playNext, (firstMax > 0 ? firstMax : 1000) + 300);
     });
   }, [sequencePlaying, level]);
 
@@ -496,6 +519,26 @@ export function Canvas({ level, projectId }: CanvasProps) {
     handleSequenceRewind(nextIndex);
   }, [sequencePlaying, sequenceNodeIndex, handleSequenceRewind]);
 
+  // Toggle quick/transition-check mode. If sequence is playing, immediately
+  // fade the current track and advance to the next node so the new mode
+  // takes effect live — instead of only kicking in after the current track
+  // finishes.
+  const handleToggleQuickMode = useCallback(() => {
+    setSequenceQuickMode((q) => {
+      const next = !q;
+      sequenceQuickModeRef.current = next;
+      return next;
+    });
+    if (sequencePlaying) {
+      const nextIndex = sequenceNodeIndex + 1;
+      if (nextIndex < sequenceOrderRef.current.length) {
+        // Small delay to let state propagate, then skip — rewind will pick
+        // up the new quickModeRef value.
+        setTimeout(() => handleSequenceRewind(nextIndex), 50);
+      }
+    }
+  }, [sequencePlaying, sequenceNodeIndex, handleSequenceRewind]);
+
   const handleStopAll = useCallback(() => {
     stopAudition();
     if (sequencePlaying) {
@@ -606,7 +649,7 @@ export function Canvas({ level, projectId }: CanvasProps) {
             </div>
           </div>
         </Panel>
-        <MiniMap
+        {mode === "detailed" && <MiniMap
           nodeColor={(n) => {
             if (n.type === "parameter") return "#a855f7";
             if (n.type === "stinger") return "#f97316";
@@ -616,7 +659,7 @@ export function Canvas({ level, projectId }: CanvasProps) {
           }}
           maskColor="rgba(13, 13, 26, 0.85)"
           className="!bg-[#0d0d1a] !border-canvas-accent !rounded-lg"
-        />
+        />}
         {/* Transport bar */}
         <Panel position="bottom-center">
           <div className="flex flex-col items-center gap-2 mb-1">
@@ -654,7 +697,7 @@ export function Canvas({ level, projectId }: CanvasProps) {
               onPlaySequence={handlePlaySequence}
               onStopAll={handleStopAll}
               onSkipNext={handleSkipNext}
-              onToggleQuickMode={() => setSequenceQuickMode((q) => !q)}
+              onToggleQuickMode={handleToggleQuickMode}
               onRewind={handleSequenceRewind}
               projectId={projectId}
             />
