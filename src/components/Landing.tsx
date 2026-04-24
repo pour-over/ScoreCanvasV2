@@ -147,7 +147,6 @@ export function Landing() {
               </svg>
             </div>
             <span className="text-base font-bold tracking-tight">Score Canvas</span>
-            <span className="text-[9px] font-mono text-canvas-highlight/60 border border-canvas-highlight/30 rounded px-1.5 py-0.5 ml-1">V2 PREVIEW</span>
           </div>
           <div className="flex items-center gap-4">
             <a href="#workflow" className="text-xs text-canvas-muted hover:text-canvas-text transition-colors">Workflow</a>
@@ -509,7 +508,7 @@ export function Landing() {
                 <path d="M2 4h3v6H2zM6 2h2v10H6zM9 5h3v5H9z" fill="currentColor" opacity="0.9"/>
               </svg>
             </div>
-            <span>Score Canvas · v2 preview</span>
+            <span>Score Canvas</span>
           </div>
           <div className="font-mono text-[10px] text-canvas-muted/60">
             Design. Audition. Deliver.
