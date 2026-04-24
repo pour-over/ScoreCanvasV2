@@ -6,8 +6,7 @@ import { TopBar } from "./components/TopBar";
 import { ProjectAssets } from "./components/ProjectAssets";
 import { ExportModal } from "./components/ExportModal";
 import { StatusReport } from "./components/StatusReport";
-import { GuidedTour } from "./components/GuidedTour";
-import { IntroOverlay, hasIntroBeenSeen } from "./components/IntroOverlay";
+import { GameTutorial, hasTutorialBeenSeen } from "./components/GameTutorial";
 import { WwiseSyncPanel } from "./components/WwiseSyncPanel";
 import { ViewModeProvider } from "./context/ViewModeContext";
 import { Landing } from "./components/Landing";
@@ -25,14 +24,13 @@ function ScoreCanvasApp() {
   const [showProjectAssets, setShowProjectAssets] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [showStatusReport, setShowStatusReport] = useState(false);
-  const [showTour, setShowTour] = useState(false);
-  const [showIntro, setShowIntro] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   const [showWwiseSync, setShowWwiseSync] = useState(false);
 
-  // Show the lightweight IntroOverlay on first visit (replaces auto full-tour)
+  // Launch GameTutorial on first visit (localStorage-gated)
   useEffect(() => {
-    if (!hasIntroBeenSeen()) {
-      const timer = setTimeout(() => setShowIntro(true), 600);
+    if (!hasTutorialBeenSeen()) {
+      const timer = setTimeout(() => setShowTutorial(true), 900);
       return () => clearTimeout(timer);
     }
   }, []);
@@ -45,6 +43,7 @@ function ScoreCanvasApp() {
   };
 
   return (
+    <ViewModeProvider>
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-canvas-bg">
       <TopBar
         projectName={currentProject.name}
@@ -56,7 +55,7 @@ function ScoreCanvasApp() {
         onOpenProjectAssets={() => setShowProjectAssets(true)}
         onOpenExport={() => setShowExport(true)}
         onOpenStatusReport={() => setShowStatusReport(true)}
-        onStartTour={() => setShowTour(true)}
+        onStartTour={() => setShowTutorial(true)}
         onOpenWwiseSync={() => setShowWwiseSync(true)}
       />
       <div className="flex flex-1 overflow-hidden">
@@ -69,11 +68,9 @@ function ScoreCanvasApp() {
           onSelectLevel={setSelectedLevelId}
           currentLevel={currentLevel}
         />
-        <ViewModeProvider>
-          <ReactFlowProvider>
-            <Canvas level={currentLevel} projectId={currentProject.id} />
-          </ReactFlowProvider>
-        </ViewModeProvider>
+        <ReactFlowProvider>
+          <Canvas level={currentLevel} projectId={currentProject.id} />
+        </ReactFlowProvider>
       </div>
       {showProjectAssets && (
         <ProjectAssets levels={currentProject.levels} projectName={currentProject.name} onClose={() => setShowProjectAssets(false)} />
@@ -84,14 +81,8 @@ function ScoreCanvasApp() {
       {showStatusReport && (
         <StatusReport levels={currentProject.levels} onClose={() => setShowStatusReport(false)} />
       )}
-      {showTour && (
-        <GuidedTour onClose={() => setShowTour(false)} />
-      )}
-      {showIntro && (
-        <IntroOverlay
-          onDismiss={() => setShowIntro(false)}
-          onStartTour={() => setShowTour(true)}
-        />
+      {showTutorial && (
+        <GameTutorial onDismiss={() => setShowTutorial(false)} />
       )}
       {showWwiseSync && (
         <WwiseSyncPanel onClose={() => setShowWwiseSync(false)} />
@@ -105,6 +96,7 @@ function ScoreCanvasApp() {
         ✉ Join the Waitlist!
       </a>
     </div>
+    </ViewModeProvider>
   );
 }
 

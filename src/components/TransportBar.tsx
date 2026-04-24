@@ -310,6 +310,7 @@ export function TransportBar({
 
         {/* Play / Stop */}
         <button
+          data-tour="transport-play"
           onClick={onPlaySequence}
           className={`w-9 h-9 flex items-center justify-center rounded-lg border-2 transition-all ${
             sequencePlaying

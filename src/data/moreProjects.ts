@@ -85,7 +85,7 @@ const codEdges_lobby: Edge[] = [
 
 export const codProject: GameProject = {
   id: "cod-warfare",
-  name: "COD: WARFARE ZONEOPS 12.4",
+  name: "STRIKECORE: WARZONE OPS 12-4",
   subtitle: "Now With 12.4% More Warfare",
   levels: [
     { id: "cod-firebase", name: "Firebase Assault", subtitle: "Exactly What You Think It Is", region: "Campaign", nodes: codNodes_firebase, edges: codEdges_firebase, assets: codAssets_firebase },

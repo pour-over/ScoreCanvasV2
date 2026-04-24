@@ -41,13 +41,13 @@ import { codProject, meditationProject, custodialProject, spreadsheetProject } f
 export const projects: GameProject[] = [
   {
     id: "journey-2",
-    name: "JOURNEY 2: THE RECKONING",
+    name: "WANDERSPIRE 2: THE UNRAVELING",
     subtitle: "Where Scarves Go to Die",
     levels: journey2Levels,
   },
   {
     id: "bloodborne-2",
-    name: "BLOODBORNE 2: CATS IN PAJAMAS",
+    name: "HOONTBORNE: THE CATNAP",
     subtitle: "A Hoonter Must Nap",
     levels: bloodborne2Levels,
   },
