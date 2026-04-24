@@ -34,15 +34,20 @@ The current product. Score Canvas as a visual, auditionable design surface for a
 **Repo**: `pour-over/ScoreCanvasV2`
 **Audience**: Audio leads, composers, technical sound designers, audio programmers, creative directors.
 
-### 2. EDU — The teaching platform
+### 2. EDU — The teaching platform ("Score Canvas for Education")
 
-Same tool, repackaged for the classroom. Curriculum-integrated exercises, assignment workflows, annotated example projects, instructor dashboards. Built around **Ted's 5 years of master's-level game music design curriculum** — which is the moat no competitor can replicate.
+Sub-branded teaching edition. Same tool, plus curriculum modules, canonical preset library, assignment workflows, rubric-first grading, and Canvas LTI 1.3 integration. Built directly around **MUSC 6633: Adaptive Music Implementation**, Ted's existing 7-week master's-level course.
 
-**Status**: Concept. Brief scaffolded at `SCORE_CANVAS_EDU_BRIEF.md`.
+**Positioning anchor**: *"Visually teach the CREATIVE part of adaptive music, then implement."* Score Canvas sits **before** Wwise in the learning flow — students make creative system-design decisions in the browser, then carry that design into Wwise to implement. It's the missing bridge between music theory and middleware.
+
+**Status**: Concept. Full executable brief at `SCORE_CANVAS_EDU_BRIEF.md`.
 **Target repo**: `pour-over/ScoreCanvasEDU` (not yet created)
-**Audience**: Universities teaching game audio (Berklee, USC, NYU, DigiPen, Full Sail, master's programs specifically). Instructors first, students benefit.
+**Pilot partners**: Southern Utah University (suu.edu) + Northwestern Michigan College (nmc.edu) — both have direct teaching relationships with Ted.
+**Post-pilot targets**: Berklee, USC, NYU Tisch, DigiPen, Full Sail.
 
-**Why this matters**: Every university game audio program wants to teach adaptive music systems. Most stitch together Wwise tutorials, YouTube videos, and "go listen to games." There is no dedicated teaching platform for this discipline. Score Canvas EDU + Ted's existing curriculum = the first real one.
+**Explicit scoping**: EDU v1 is *teaching, not creating*. Segue is deliberately out of scope — students study and design canonical preset systems, not generate new music. That keeps the product focused on pedagogy and avoids coupling to Segue's timeline.
+
+**Why this matters**: Every university game audio program wants to teach adaptive music systems. Most stitch together Wwise tutorials, YouTube videos, and "go listen to games." There is no dedicated teaching platform for this discipline. Score Canvas for Education + Ted's existing curriculum = the first real one.
 
 ### 3. Film — Remote score auditioning (future)
 
@@ -94,14 +99,17 @@ Segue is cross-cutting:
 - Mobile-friendly view mode (tablet support for on-the-go review)
 - Figma plugin for embedding music system graphs in design docs
 
-### EDU (once scoped with Ted)
+### EDU (ready for execution — see SCORE_CANVAS_EDU_BRIEF.md)
 
-See `SCORE_CANVAS_EDU_BRIEF.md` for full scope. High-level:
-- Curriculum module system (lessons, exercises, assessments)
-- Classroom management (assignments, student progress, grading)
-- Annotated canonical examples (bad → good progressions)
-- Instructor / student role separation
-- LTI 1.3 compatibility for integration with Canvas (LMS, not this tool), Moodle, Blackboard
+High-level:
+- Seven modules mapping 1:1 to MUSC 6633 weeks 1–7
+- Canonical preset library: Title Screen Cue, 4-Layer Tension, Explore↔Combat, Boss Fight Phases, Cinematic Integration, Capstone Reference
+- Rubric-first grading (Ted's preferred grading method for technical assignments)
+- Assignment workflow: fork preset → student submits graph + Wwise project → instructor reviews both against rubric → grade posts to Canvas
+- Canvas LTI 1.3 as the only LMS integration in v1 (Moodle / Blackboard in v2)
+- Deployment: full-stack (unlike Core's static deploy) — API + Postgres + R2 + Clerk/Supabase auth
+- Pilot timeline: SUU first, then NMC
+- Segue is explicitly NOT included in EDU v1
 
 ### Film (once scoped)
 
@@ -125,6 +133,10 @@ See `SCORE_CANVAS_EDU_BRIEF.md` for full scope. High-level:
 5. **"Lead Music Designer with 18 years in AAA games" is the credibility anchor.** Not "at PlayStation Studios" — keep the line legally-safe so the brand can travel wherever Ted goes.
 
 6. **Ted's 20-year editorial background is the single biggest defensibility signal.** No competitor has it. Every product story should reinforce it when appropriate — especially around Segue and EDU.
+
+7. **EDU teaches creative thinking, not generation.** Segue is not in EDU v1. Conflating the two weakens both products. Students learn to design systems by studying canonical presets, not by prompting AI. When Segue matures, it becomes an optional advanced module — never the core value proposition.
+
+8. **Wwise is the implementation partner, not the competitor.** Score Canvas for Education sits *before* Wwise in the learning flow. The relationship with Audiokinetic should be cooperative, not adversarial — this tool makes Wwise training more effective, not less necessary.
 
 ---
 
