@@ -99,6 +99,40 @@ Segue is cross-cutting:
 - Mobile-friendly view mode (tablet support for on-the-go review)
 - Figma plugin for embedding music system graphs in design docs
 
+### Bulk data import (v2.5)
+
+Onboarding a real shipped game means reflecting hundreds of music states, transitions, RTPCs, and assets. Editing TypeScript files doesn't scale. Four import paths planned:
+
+- **CSV** — paste a spreadsheet, one row per node. Music designers already track systems in Excel; meet them where they are.
+- **JSON** — structured project file with a stable schema (preview lives in the in-app DataImportPanel).
+- **Wwise project ingestion** — drag a `.wproj` or `.bnk`, reverse-engineer the music hierarchy into a Score Canvas graph. Highest-leverage path for studios with mature Wwise projects.
+- **Markdown table paste** — for audio leads who design in docs first.
+
+The "+ New Level" / "+ New Game" buttons already ship in v2 as roadmap teasers (see `DataImportPanel.tsx`).
+
+### Enterprise & studio rollout (v2.5+)
+
+This is the "built for studios" track — what CorpIT, security review, and finance ask for before a license gets signed.
+
+- **SSO** via SAML / OIDC (Okta, Azure AD, Google Workspace). No shadow accounts.
+- **Secure share links**: view-only, comment-only, expiring, watermarked, audit-trailed. The UX of a Figma share, scoped for studios.
+- **Role-based access control**: audio lead / collaborator / viewer / external composer. Per-project granularity.
+- **Compliance**: SOC 2 Type II, GDPR, audit logs, data residency options.
+- **Team workspaces**: multiple games per studio, separate rosters, multi-cursor co-editing (Yjs foundation already in V2).
+- **On-prem / air-gapped Docker option** for studios with NDA-locked unreleased music. Same product, customer's network.
+- **Studio licensing program** with security review packets, MSA templates, and a named contact at Pour-Over.
+
+### Stem Editor v2 (post-Segue integration)
+
+The current Stem Editor is design-time. v2 makes it actual:
+
+- Real source separation via Segue's stem split (mixed track → isolated stems on demand).
+- Per-stem RTPC mapping in the UI — see at a glance which stems respond to which parameter.
+- Per-stem director notes and condition logic.
+- Real-time stem mixing with Web Audio (when separated stems exist).
+- A/B compare two stem mixes.
+- Per-stem ducking and side-chaining preview.
+
 ### EDU (ready for execution — see SCORE_CANVAS_EDU_BRIEF.md)
 
 High-level:
@@ -137,6 +171,10 @@ High-level:
 7. **EDU teaches creative thinking, not generation.** Segue is not in EDU v1. Conflating the two weakens both products. Students learn to design systems by studying canonical presets, not by prompting AI. When Segue matures, it becomes an optional advanced module — never the core value proposition.
 
 8. **Wwise is the implementation partner, not the competitor.** Score Canvas for Education sits *before* Wwise in the learning flow. The relationship with Audiokinetic should be cooperative, not adversarial — this tool makes Wwise training more effective, not less necessary.
+
+9. **The 60-second pitch is the killer demo moment.** A non-audio leader (VP, producer, creative director) opens Score Canvas, looks at the graph, presses Play, and groks the entire music system in under a minute. No other tool does this. Every product surface should reinforce that property — the layout, the simple-mode default, the audition flow, and especially the "share this with your VP" affordances.
+
+10. **Studio-friendly is a feature category, not a checklist.** SSO, secure share links, audit logs, on-prem options, RBAC — these aren't optional add-ons for big customers, they're the difference between getting on a studio's tool stack and not. They go in the marketing prominently (see "Built for Studios" section on the landing) even when they're roadmap, because they signal seriousness to the people who write the checks.
 
 ---
 

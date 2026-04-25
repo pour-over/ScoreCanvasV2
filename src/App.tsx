@@ -9,6 +9,7 @@ import { StatusReport } from "./components/StatusReport";
 import { GameTutorial, hasTutorialBeenSeen } from "./components/GameTutorial";
 import { WwiseSyncPanel } from "./components/WwiseSyncPanel";
 import { SeguePanel } from "./components/SeguePanel";
+import { DataImportPanel } from "./components/DataImportPanel";
 import { ViewModeProvider } from "./context/ViewModeContext";
 import { Landing } from "./components/Landing";
 import { stopAudition } from "./audio/synth";
@@ -28,12 +29,23 @@ function ScoreCanvasApp() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showWwiseSync, setShowWwiseSync] = useState(false);
   const [showSegue, setShowSegue] = useState(false);
+  const [importMode, setImportMode] = useState<"level" | "project" | null>(null);
 
   // Listen for window event so any mock AI button anywhere in the app can open SEGUE
   useEffect(() => {
     const handler = () => setShowSegue(true);
     window.addEventListener("open-segue", handler);
     return () => window.removeEventListener("open-segue", handler);
+  }, []);
+
+  // Listen for "+ New Level" / "+ New Game" buttons anywhere in the app
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<{ mode: "level" | "project" }>).detail;
+      if (detail?.mode) setImportMode(detail.mode);
+    };
+    window.addEventListener("open-import", handler);
+    return () => window.removeEventListener("open-import", handler);
   }, []);
 
   // Launch GameTutorial on first visit (localStorage-gated)
@@ -99,6 +111,9 @@ function ScoreCanvasApp() {
       )}
       {showSegue && (
         <SeguePanel onClose={() => setShowSegue(false)} />
+      )}
+      {importMode && (
+        <DataImportPanel mode={importMode} onClose={() => setImportMode(null)} />
       )}
       {/* Waitlist CTA — fixed bottom-right */}
       <a

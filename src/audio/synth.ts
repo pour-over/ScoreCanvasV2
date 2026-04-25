@@ -64,6 +64,49 @@ async function loadAudioBuffer(url: string): Promise<AudioBuffer | null> {
   }
 }
 
+// ─── Waveform peaks (for visualization) ─────────────────────────────────────
+
+const peaksCache = new Map<string, number[]>();
+
+/**
+ * Load + decode an audio file and return a downsampled array of peak amplitudes
+ * suitable for waveform visualization. Each peak is the max absolute sample
+ * value within its bucket, normalized to 0–1. Cached after first computation.
+ */
+export async function loadWaveformPeaks(audioFile: string, buckets = 96): Promise<number[] | null> {
+  const url = `/audio/${audioFile}`;
+  const cacheKey = `${url}:${buckets}`;
+  if (peaksCache.has(cacheKey)) return peaksCache.get(cacheKey)!;
+  const buf = await loadAudioBuffer(url);
+  if (!buf) return null;
+  // Mix down to mono by averaging the channels (handles mono and stereo).
+  const channelData: Float32Array[] = [];
+  for (let c = 0; c < buf.numberOfChannels; c++) channelData.push(buf.getChannelData(c));
+  const totalSamples = buf.length;
+  const samplesPerBucket = Math.floor(totalSamples / buckets) || 1;
+  const peaks: number[] = new Array(buckets).fill(0);
+  let globalMax = 0;
+  for (let b = 0; b < buckets; b++) {
+    const start = b * samplesPerBucket;
+    const end = Math.min(start + samplesPerBucket, totalSamples);
+    let max = 0;
+    for (let i = start; i < end; i++) {
+      let s = 0;
+      for (let c = 0; c < channelData.length; c++) s += channelData[c][i];
+      const v = Math.abs(s / channelData.length);
+      if (v > max) max = v;
+    }
+    peaks[b] = max;
+    if (max > globalMax) globalMax = max;
+  }
+  // Normalize so the loudest peak is 1.0 (purely visual; doesn't affect playback).
+  if (globalMax > 0) {
+    for (let i = 0; i < buckets; i++) peaks[i] /= globalMax;
+  }
+  peaksCache.set(cacheKey, peaks);
+  return peaks;
+}
+
 interface FilePlaybackOptions {
   /** "full" plays entire file; "transition" plays first 10s + last 10s with fades */
   mode?: "full" | "transition";

@@ -38,7 +38,7 @@ let nodeId = 100;
 const getId = () => `node_${++nodeId}`;
 
 // ─── Auto-layout: BFS left-to-right columns ────────────────────────────────
-function autoLayout(nodes: Node[], edges: Edge[]): Node[] {
+function autoLayout(nodes: Node[], edges: Edge[], detailed = false): Node[] {
   if (nodes.length === 0) return nodes;
 
   const outgoing = new Map<string, string[]>();
@@ -79,8 +79,10 @@ function autoLayout(nodes: Node[], edges: Edge[]): Node[] {
     columns.get(col)!.push(n);
   });
 
-  const COL_WIDTH = 340;
-  const ROW_HEIGHT = 220;
+  // Detailed nodes are taller (director notes, stems list, status badges)
+  // and slightly wider, so they need more breathing room when the layout runs.
+  const COL_WIDTH = detailed ? 420 : 340;
+  const ROW_HEIGHT = detailed ? 320 : 220;
 
   return nodes.map((n) => {
     const col = depth.get(n.id) ?? 0;
@@ -113,12 +115,12 @@ export function Canvas({ level, projectId }: CanvasProps) {
     // Auto-clean layout on first load of every level — uses the same BFS
     // algorithm as the Clean Up View button so the canvas is tidy and
     // left-to-right from the start.
-    const cleaned = autoLayout(level.nodes, level.edges);
+    const cleaned = autoLayout(level.nodes, level.edges, mode === "detailed");
     setNodes(cleaned);
     setEdges(level.edges);
     // Slightly generous padding so the graph breathes
     setTimeout(() => fitView({ padding: 0.22, duration: 400 }), 60);
-  }, [level.id, level.nodes, level.edges, setNodes, setEdges, fitView]);
+  }, [level.id, level.nodes, level.edges, setNodes, setEdges, fitView, mode]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true }, eds)),
@@ -214,9 +216,9 @@ export function Canvas({ level, projectId }: CanvasProps) {
   );
 
   const handleCleanUp = useCallback(() => {
-    setNodes((nds) => autoLayout(nds, edges));
+    setNodes((nds) => autoLayout(nds, edges, mode === "detailed"));
     setTimeout(() => fitView({ padding: 0.2, duration: 400 }), 50);
-  }, [setNodes, edges, fitView]);
+  }, [setNodes, edges, fitView, mode]);
 
   // ─── Volume control ────────────────────────────────────────────────────────
   const [volume, setVolumeState] = useState(getVolume());

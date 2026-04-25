@@ -1,6 +1,7 @@
 import { useState, type DragEvent } from "react";
 import type { GameLevel, MusicAsset } from "../data/projects";
 import { auditionAsset, stopAudition, type AssetCategory } from "../audio/synth";
+import { Waveform } from "./Waveform";
 
 interface ProjectAssetsProps {
   levels: GameLevel[];
@@ -336,23 +337,13 @@ export function ProjectAssets({ levels, projectName, onClose }: ProjectAssetsPro
                           </div>
                         )}
 
-                        {/* Waveform placeholder */}
-                        <div className="mt-3 h-10 rounded bg-canvas-bg/50 border border-canvas-accent/30 flex items-center justify-center overflow-hidden relative">
-                          <div className="flex items-end gap-px h-full w-full px-1 py-1">
-                            {Array.from({ length: 80 }, (_, i) => {
-                              const h = 10 + Math.sin(i * 0.3) * 8 + Math.random() * 12;
-                              return (
-                                <div key={i} className="flex-1 rounded-t" style={{
-                                  height: `${h}%`,
-                                  background: isActive ? `${categoryColors[asset.category]}cc` : `${categoryColors[asset.category]}44`,
-                                  transition: "background 0.3s",
-                                }} />
-                              );
-                            })}
-                          </div>
-                          {isActive && (
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse" />
-                          )}
+                        {/* Real waveform — decoded from the actual MP3 lazily */}
+                        <div className="mt-3">
+                          <Waveform
+                            audioFile={asset.audioFile}
+                            color={categoryColors[asset.category]}
+                            active={isActive}
+                          />
                         </div>
                       </td>
                     </tr>

@@ -152,6 +152,7 @@ export function Landing() {
             <a href="#workflow" className="text-xs text-canvas-muted hover:text-canvas-text transition-colors">Workflow</a>
             <a href="#for-teams" className="text-xs text-canvas-muted hover:text-canvas-text transition-colors">For Teams</a>
             <a href="#features" className="text-xs text-canvas-muted hover:text-canvas-text transition-colors">Features</a>
+            <a href="#for-studios" className="text-xs text-canvas-muted hover:text-canvas-text transition-colors">For Studios</a>
             <a href="#roadmap" className="text-xs text-canvas-muted hover:text-canvas-text transition-colors">Roadmap</a>
             <a href="#waitlist" className="text-xs text-canvas-muted hover:text-canvas-text transition-colors">Early Access</a>
             <a
@@ -253,13 +254,26 @@ export function Landing() {
         </div>
       </section>
 
-      {/* ═══ Metrics Strip ═══ */}
-      <section className="py-16 px-6 border-t border-canvas-accent/20 bg-gradient-to-b from-transparent via-canvas-highlight/5 to-transparent">
-        <div className="max-w-5xl mx-auto">
+      {/* ═══ The 60-Second Pitch ═══ */}
+      <section className="py-20 px-6 border-t border-canvas-accent/20 bg-gradient-to-b from-transparent via-canvas-highlight/5 to-transparent">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-canvas-highlight mb-3">The 60-Second Pitch</p>
+            <h2 className="text-3xl md:text-4xl font-black mb-4 leading-tight">
+              Hand it to a producer.<br/>
+              <span className="bg-gradient-to-r from-canvas-highlight to-[#4ecdc4] bg-clip-text text-transparent">In 60 seconds, they get it.</span>
+            </h2>
+            <p className="text-sm text-canvas-muted max-w-2xl mx-auto leading-relaxed">
+              Adaptive music is normally invisible to everyone except the audio team. With Score Canvas, the whole system is one graph — auditionable, annotated, and readable by anyone on the dev team.
+              A checked-out VP can scan it. A checked-in producer can audit it. A creative director can walk it with their composer. <em>Without an audio call.</em>
+            </p>
+          </div>
+
           <div className="grid md:grid-cols-3 gap-8 text-center">
             <div>
               <div className="text-4xl font-black text-canvas-highlight mb-2">60s</div>
-              <div className="text-xs font-mono uppercase tracking-wider text-canvas-muted">From idea to audible prototype</div>
+              <div className="text-xs font-mono uppercase tracking-wider text-canvas-muted">To grok any music system</div>
+              <div className="text-[10px] text-canvas-muted/60 mt-1">Without prior audio knowledge</div>
             </div>
             <div>
               <div className="text-4xl font-black text-canvas-highlight mb-2">0 pages</div>
@@ -445,6 +459,99 @@ export function Landing() {
           <div className="mt-8 text-center">
             <p className="text-[11px] text-canvas-muted/60">
               First cohort gets both features <span className="text-canvas-highlight font-semibold">at cost</span> when they ship. <a href="#waitlist" className="text-canvas-highlight hover:underline">Join the waitlist →</a>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ Built for Studios — Enterprise / SSO / Bulk Import roadmap ═══ */}
+      <section id="for-studios" className="py-24 px-6 border-t border-canvas-accent/20">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-canvas-highlight mb-3">Built for Studios</p>
+            <h2 className="text-3xl md:text-4xl font-black mb-3">Send it to anyone on the dev team.</h2>
+            <p className="text-sm text-canvas-muted max-w-2xl mx-auto leading-relaxed">
+              Score Canvas runs in a browser tab — no installs, no Wwise license, no special hardware. Which means it travels everywhere a build doc does, but actually plays. CorpIT-friendly by design.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4 mb-6">
+            {/* SSO */}
+            <div className="bg-[#0d0d1a]/80 border border-canvas-accent/40 rounded-xl p-5 hover:border-canvas-highlight/40 transition-colors">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="text-2xl">🔐</div>
+                <div className="text-[9px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-canvas-highlight/20 text-canvas-highlight border border-canvas-highlight/30 ml-auto">Roadmap</div>
+              </div>
+              <h3 className="text-sm font-bold text-canvas-text mb-1.5">SSO &amp; Identity</h3>
+              <p className="text-xs text-canvas-muted leading-relaxed">
+                Okta, Azure AD, Google Workspace via SAML / OIDC. Studio CorpIT can roll Score Canvas into the existing identity stack — no shadow accounts, no security review nightmare.
+              </p>
+            </div>
+
+            {/* Secure sharing */}
+            <div className="bg-[#0d0d1a]/80 border border-canvas-accent/40 rounded-xl p-5 hover:border-canvas-highlight/40 transition-colors">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="text-2xl">🔗</div>
+                <div className="text-[9px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-canvas-highlight/20 text-canvas-highlight border border-canvas-highlight/30 ml-auto">Roadmap</div>
+              </div>
+              <h3 className="text-sm font-bold text-canvas-text mb-1.5">Secure Share Links</h3>
+              <p className="text-xs text-canvas-muted leading-relaxed">
+                Send a single URL to a VP, producer, or external composer. View-only or comment-only. Expiring links, watermarking, audit trail. The UX of a Figma share, scoped for studios.
+              </p>
+            </div>
+
+            {/* Compliance */}
+            <div className="bg-[#0d0d1a]/80 border border-canvas-accent/40 rounded-xl p-5 hover:border-canvas-highlight/40 transition-colors">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="text-2xl">✓</div>
+                <div className="text-[9px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-canvas-highlight/20 text-canvas-highlight border border-canvas-highlight/30 ml-auto">Roadmap</div>
+              </div>
+              <h3 className="text-sm font-bold text-canvas-text mb-1.5">Compliance-Ready</h3>
+              <p className="text-xs text-canvas-muted leading-relaxed">
+                SOC 2 Type II, GDPR, role-based access (audio lead / collaborator / viewer / external), per-project audit logs. The boring stuff CorpIT actually asks about.
+              </p>
+            </div>
+
+            {/* Bulk import */}
+            <div className="bg-[#0d0d1a]/80 border border-canvas-accent/40 rounded-xl p-5 hover:border-canvas-highlight/40 transition-colors">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="text-2xl">⤓</div>
+                <div className="text-[9px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-canvas-highlight/20 text-canvas-highlight border border-canvas-highlight/30 ml-auto">Roadmap</div>
+              </div>
+              <h3 className="text-sm font-bold text-canvas-text mb-1.5">Bulk Import</h3>
+              <p className="text-xs text-canvas-muted leading-relaxed">
+                Drag-drop a CSV, JSON, Wwise <code className="text-[10px] text-canvas-highlight">.wproj</code>, or Markdown table. Hundreds of music states, transitions, RTPCs imported in one shot. Onboard a real game in a day instead of a week.
+              </p>
+            </div>
+
+            {/* Team workspaces */}
+            <div className="bg-[#0d0d1a]/80 border border-canvas-accent/40 rounded-xl p-5 hover:border-canvas-highlight/40 transition-colors">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="text-2xl">👥</div>
+                <div className="text-[9px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-canvas-highlight/20 text-canvas-highlight border border-canvas-highlight/30 ml-auto">Roadmap</div>
+              </div>
+              <h3 className="text-sm font-bold text-canvas-text mb-1.5">Team Workspaces</h3>
+              <p className="text-xs text-canvas-muted leading-relaxed">
+                Multiple games per studio, each with its own roster. Multi-cursor co-editing (the foundation already ships in V2 via Yjs). Comment threads on nodes, like a design tool.
+              </p>
+            </div>
+
+            {/* On-prem */}
+            <div className="bg-[#0d0d1a]/80 border border-canvas-accent/40 rounded-xl p-5 hover:border-canvas-highlight/40 transition-colors">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="text-2xl">🏢</div>
+                <div className="text-[9px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-canvas-highlight/20 text-canvas-highlight border border-canvas-highlight/30 ml-auto">Roadmap</div>
+              </div>
+              <h3 className="text-sm font-bold text-canvas-text mb-1.5">On-Prem &amp; Air-Gapped</h3>
+              <p className="text-xs text-canvas-muted leading-relaxed">
+                For studios with NDA-locked unreleased music: self-hosted Docker option, no internet egress required. Same product, your network.
+              </p>
+            </div>
+          </div>
+
+          <div className="text-center mt-6">
+            <p className="text-[11px] text-canvas-muted/60">
+              Studio licensing &amp; security review packets available on request. <a href="#waitlist" className="text-canvas-highlight hover:underline">Join the waitlist →</a>
             </p>
           </div>
         </div>

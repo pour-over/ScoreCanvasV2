@@ -151,6 +151,17 @@ export function Sidebar({ projects, selectedProjectId, onSelectProject, levels, 
                   <div className="text-[8px] text-canvas-muted/30 font-mono">{proj.levels.length} level{proj.levels.length !== 1 ? "s" : ""}</div>
                 </button>
               ))}
+              <button
+                onClick={() => {
+                  setDropdownOpen(false);
+                  window.dispatchEvent(new CustomEvent("open-import", { detail: { mode: "project" } }));
+                }}
+                className="w-full text-left px-2.5 py-2 border-t border-canvas-accent/50 hover:bg-amber-500/10 transition-colors flex items-center gap-2"
+              >
+                <span className="text-amber-400 text-sm">+</span>
+                <span className="text-[10px] font-bold text-amber-300">Add New Game</span>
+                <span className="text-[8px] font-mono bg-amber-500/20 text-amber-300 rounded px-1 ml-auto">SOON</span>
+              </button>
               <div className="border-t border-canvas-accent/50 px-2.5 py-1.5">
                 <div className="text-[8px] text-canvas-muted/30 italic">Tip: Lock the project selector for single-game teams working on one title.</div>
               </div>
@@ -166,6 +177,14 @@ export function Sidebar({ projects, selectedProjectId, onSelectProject, levels, 
         {/* Levels */}
         <CollapsibleSection title="Levels" count={levels.length}>
           <LevelBrowser levels={levels} selectedId={selectedLevelId} onSelect={onSelectLevel} />
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent("open-import", { detail: { mode: "level" } }))}
+            className="mt-2 w-full px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider rounded border border-dashed border-canvas-accent text-canvas-muted hover:text-amber-300 hover:border-amber-500/50 transition-colors flex items-center justify-center gap-1.5"
+            title="Add a new level — bulk CSV/JSON import coming v2.5"
+          >
+            <span className="text-amber-400">+</span> New Level
+            <span className="text-[8px] font-mono bg-amber-500/20 text-amber-300 rounded px-1 ml-1">SOON</span>
+          </button>
         </CollapsibleSection>
 
         <div className="mx-3 border-t border-canvas-accent" />
