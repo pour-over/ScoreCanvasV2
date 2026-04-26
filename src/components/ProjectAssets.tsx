@@ -287,32 +287,26 @@ export function ProjectAssets({ levels, projectName, onClose }: ProjectAssetsPro
                           <div>
                             <div className="flex items-center gap-2 mb-2">
                               <div className="text-[9px] font-mono text-canvas-muted uppercase tracking-wider">AI Tools</div>
-                              <span className="text-[8px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">Coming v2.5</span>
+                              <span className="text-[8px] font-mono font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">SEGUE</span>
                             </div>
-                            <div className="space-y-1.5" title="Click any button to learn about SEGUE — AI stem generation coming in v2.5">
-                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new Event("open-segue")); }} title="Learn about SEGUE — AI stem generation coming in v2.5" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-purple-900/20 text-purple-300 border border-purple-500/20 hover:bg-purple-500/20 hover:border-purple-500/40 text-left flex items-center gap-2 transition-colors">
+                            <div className="space-y-1.5">
+                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("segue-generate", { detail: { asset, kind: "variation" } })); }} title="Generate a stem variation via SEGUE" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-purple-900/20 text-purple-300 border border-purple-500/20 hover:bg-purple-500/20 hover:border-purple-500/40 text-left flex items-center gap-2 transition-colors">
                                 <span className="text-purple-400">✦</span> Generate Variation
-                                <span className="text-[8px] text-purple-400/60 ml-auto">SOON</span>
                               </button>
-                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new Event("open-segue")); }} title="Learn about SEGUE — AI stem generation coming in v2.5" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-purple-900/20 text-purple-300 border border-purple-500/20 hover:bg-purple-500/20 hover:border-purple-500/40 text-left flex items-center gap-2 transition-colors">
+                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("segue-generate", { detail: { asset, kind: "intro" } })); }} title="Generate an intro tag via SEGUE" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-purple-900/20 text-purple-300 border border-purple-500/20 hover:bg-purple-500/20 hover:border-purple-500/40 text-left flex items-center gap-2 transition-colors">
                                 <span className="text-purple-400">⤴</span> Generate Intro Tag
-                                <span className="text-[8px] text-purple-400/60 ml-auto">SOON</span>
                               </button>
-                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new Event("open-segue")); }} title="Learn about SEGUE — AI stem generation coming in v2.5" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-purple-900/20 text-purple-300 border border-purple-500/20 hover:bg-purple-500/20 hover:border-purple-500/40 text-left flex items-center gap-2 transition-colors">
+                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("segue-generate", { detail: { asset, kind: "endtag" } })); }} title="Generate an end tag via SEGUE" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-purple-900/20 text-purple-300 border border-purple-500/20 hover:bg-purple-500/20 hover:border-purple-500/40 text-left flex items-center gap-2 transition-colors">
                                 <span className="text-purple-400">⤵</span> Generate End Tag
-                                <span className="text-[8px] text-purple-400/60 ml-auto">SOON</span>
                               </button>
-                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new Event("open-segue")); }} title="Learn about SEGUE — AI stem generation coming in v2.5" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-purple-900/20 text-purple-300 border border-purple-500/20 hover:bg-purple-500/20 hover:border-purple-500/40 text-left flex items-center gap-2 transition-colors">
+                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("segue-generate", { detail: { asset, kind: "segue" } })); }} title="Generate a transition via SEGUE (X→Y bridge)" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-purple-900/20 text-purple-300 border border-purple-500/20 hover:bg-purple-500/20 hover:border-purple-500/40 text-left flex items-center gap-2 transition-colors">
                                 <span className="text-purple-400">↔</span> Generate Transition
-                                <span className="text-[8px] text-purple-400/60 ml-auto">SOON</span>
                               </button>
-                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new Event("open-segue")); }} title="Learn about SEGUE — AI stem generation coming in v2.5" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-amber-900/20 text-amber-300 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 text-left flex items-center gap-2 transition-colors">
+                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("segue-generate", { detail: { asset, kind: "split" } })); }} title="Split this mix into stems (SEGUE)" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-amber-900/20 text-amber-300 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 text-left flex items-center gap-2 transition-colors">
                                 <span className="text-amber-400">≡</span> Split Stems
-                                <span className="text-[8px] text-amber-400/60 ml-auto">SOON</span>
                               </button>
-                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new Event("open-segue")); }} title="Learn about SEGUE — AI analysis coming in v2.5" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-cyan-900/20 text-cyan-300 border border-cyan-500/20 hover:bg-cyan-500/20 hover:border-cyan-500/40 text-left flex items-center gap-2 transition-colors">
+                              <button onClick={(e) => { e.stopPropagation(); window.dispatchEvent(new CustomEvent("segue-generate", { detail: { asset, kind: "analyze" } })); }} title="Analyze this asset (SEGUE)" className="w-full px-2.5 py-1.5 text-[10px] font-semibold rounded bg-cyan-900/20 text-cyan-300 border border-cyan-500/20 hover:bg-cyan-500/20 hover:border-cyan-500/40 text-left flex items-center gap-2 transition-colors">
                                 <span className="text-cyan-400">♪</span> Analyze &amp; Tag
-                                <span className="text-[8px] text-cyan-400/60 ml-auto">SOON</span>
                               </button>
                             </div>
                           </div>

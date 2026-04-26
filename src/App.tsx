@@ -10,6 +10,7 @@ import { StatusReport } from "./components/StatusReport";
 import { GameTutorial, hasTutorialBeenSeen } from "./components/GameTutorial";
 import { WwiseSyncPanel } from "./components/WwiseSyncPanel";
 import { SeguePanel } from "./components/SeguePanel";
+import { GenerationModal, type GenerationRequestEvent } from "./components/GenerationModal";
 import { DataImportPanel } from "./components/DataImportPanel";
 import { AuthModal } from "./components/AuthModal";
 import { ViewModeProvider } from "./context/ViewModeContext";
@@ -62,6 +63,7 @@ function ScoreCanvasApp() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [showWwiseSync, setShowWwiseSync] = useState(false);
   const [showSegue, setShowSegue] = useState(false);
+  const [generationRequest, setGenerationRequest] = useState<GenerationRequestEvent | null>(null);
   const [importMode, setImportMode] = useState<"level" | "project" | null>(null);
   const [authReason, setAuthReason] = useState<string | null>(null);
   const [showAuth, setShowAuth] = useState(false);
@@ -78,13 +80,19 @@ function ScoreCanvasApp() {
       setAuthReason(detail?.reason ?? null);
       setShowAuth(true);
     };
+    const onGenerate = (e: Event) => {
+      const detail = (e as CustomEvent<GenerationRequestEvent>).detail;
+      if (detail?.asset && detail.kind) setGenerationRequest(detail);
+    };
     window.addEventListener("open-segue", onSegue);
     window.addEventListener("open-import", onImport);
     window.addEventListener("open-auth", onAuth);
+    window.addEventListener("segue-generate", onGenerate);
     return () => {
       window.removeEventListener("open-segue", onSegue);
       window.removeEventListener("open-import", onImport);
       window.removeEventListener("open-auth", onAuth);
+      window.removeEventListener("segue-generate", onGenerate);
     };
   }, []);
 
@@ -280,6 +288,12 @@ function ScoreCanvasApp() {
       )}
       {showWwiseSync && (
         <WwiseSyncPanel onClose={() => setShowWwiseSync(false)} />
+      )}
+      {generationRequest && (
+        <GenerationModal
+          request={generationRequest}
+          onClose={() => setGenerationRequest(null)}
+        />
       )}
       {showSegue && (
         <SeguePanel onClose={() => setShowSegue(false)} />
