@@ -102,9 +102,15 @@ function autoLayout(nodes: Node[], edges: Edge[], detailed = false): Node[] {
 interface CanvasProps {
   level: GameLevel;
   projectId: string;
+  /**
+   * Optional callback fired (debounced) when the user edits nodes or edges.
+   * Used by App.tsx to keep its source-of-truth project in sync for save.
+   * Demo projects pass nothing here — they're effectively read-only.
+   */
+  onLevelEdit?: (levelId: string, nodes: Node[], edges: Edge[]) => void;
 }
 
-export function Canvas({ level, projectId }: CanvasProps) {
+export function Canvas({ level, projectId, onLevelEdit }: CanvasProps) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState(level.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(level.edges);
@@ -121,6 +127,15 @@ export function Canvas({ level, projectId }: CanvasProps) {
     // Slightly generous padding so the graph breathes
     setTimeout(() => fitView({ padding: 0.22, duration: 400 }), 60);
   }, [level.id, level.nodes, level.edges, setNodes, setEdges, fitView, mode]);
+
+  // ─── Broadcast edits up to App (for save) ───────────────────────────────
+  // Debounced so we don't fire on every drag pixel. App handles save itself
+  // (manual or autosave); this just keeps the parent's project in sync.
+  useEffect(() => {
+    if (!onLevelEdit) return;
+    const t = setTimeout(() => onLevelEdit(level.id, nodes, edges), 400);
+    return () => clearTimeout(t);
+  }, [nodes, edges, level.id, onLevelEdit]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true }, eds)),

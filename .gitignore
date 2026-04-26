@@ -3,3 +3,6 @@ dist
 .DS_Store
 .netlify
 *.log
+.env
+.env.local
+.env.*.local

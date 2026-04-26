@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useViewMode } from "../context/ViewModeContext";
 
 interface TopBarProps {
@@ -13,6 +14,32 @@ interface TopBarProps {
   onStartTour?: () => void;
   onOpenWwiseSync?: () => void;
   onOpenSegue?: () => void;
+  // Auth + persistence
+  userEmail: string | null;
+  onSignIn: () => void;
+  onSignOut: () => Promise<void> | void;
+  onSave: () => Promise<void> | void;
+  onFork: () => Promise<void> | void;
+  savingState: "idle" | "saving" | "error";
+  savedAt: Date | null;
+  isUserProject: boolean;
+  configured: boolean;
+}
+
+/** Tiny relative-time helper: "12s ago", "3m ago", "2h ago". */
+function useRelativeTime(date: Date | null): string {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!date) return;
+    const id = setInterval(() => setNow(Date.now()), 5000);
+    return () => clearInterval(id);
+  }, [date]);
+  if (!date) return "";
+  const diff = Math.max(0, now - date.getTime());
+  if (diff < 5000) return "just now";
+  if (diff < 60000) return `${Math.floor(diff / 1000)}s ago`;
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+  return `${Math.floor(diff / 3600000)}h ago`;
 }
 
 export function TopBar({
@@ -28,9 +55,19 @@ export function TopBar({
   onStartTour,
   onOpenWwiseSync,
   onOpenSegue,
+  userEmail,
+  onSignIn,
+  onSignOut,
+  onSave,
+  onFork,
+  savingState,
+  savedAt,
+  isUserProject,
+  configured,
 }: TopBarProps) {
   const { mode } = useViewMode();
   const isSimple = mode === "simple";
+  const savedRelative = useRelativeTime(savedAt);
 
   return (
     <header className="h-11 bg-[#0d0d1a] border-b border-canvas-accent flex items-center px-4 gap-4 shrink-0">
@@ -42,6 +79,9 @@ export function TopBar({
           </svg>
         </div>
         <span className="text-sm font-bold text-canvas-text tracking-tight truncate max-w-[260px]">{projectName}</span>
+        {!isUserProject && (
+          <span className="text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-canvas-accent/40 text-canvas-muted border border-canvas-accent flex-shrink-0">demo</span>
+        )}
       </div>
 
       <div className="w-px h-5 bg-canvas-accent flex-shrink-0" />
@@ -69,6 +109,35 @@ export function TopBar({
         >
           Status
         </button>
+
+        {/* Save / Fork / saving state */}
+        {isUserProject ? (
+          <button
+            onClick={onSave}
+            disabled={savingState === "saving"}
+            title="Save this project"
+            className={`px-2.5 py-1 text-[11px] font-semibold rounded border transition-colors flex items-center gap-1.5 ${
+              savingState === "error"
+                ? "bg-red-900/40 text-red-300 border-red-500/50"
+                : "bg-canvas-highlight/80 text-white border-canvas-highlight hover:bg-canvas-highlight disabled:opacity-60"
+            }`}
+          >
+            {savingState === "saving" && <span className="inline-block w-3 h-3 rounded-full border-2 border-white/40 border-t-white animate-spin" />}
+            {savingState === "saving" ? "Saving..." : savingState === "error" ? "Retry save" : "Save"}
+          </button>
+        ) : (
+          <button
+            onClick={onFork}
+            title="Fork this demo into your own editable project"
+            className="px-2.5 py-1 text-[11px] font-semibold rounded bg-purple-900/30 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30 transition-colors flex items-center gap-1"
+          >
+            <span className="text-[10px]">⑂</span> Fork to my projects
+          </button>
+        )}
+
+        {savedAt && savingState === "idle" && (
+          <span className="text-[10px] text-canvas-muted/70 font-mono">saved {savedRelative}</span>
+        )}
       </div>
 
       <div className="flex-1" />
@@ -141,6 +210,29 @@ export function TopBar({
       >
         Export
       </button>
+
+      <div className="w-px h-5 bg-canvas-accent flex-shrink-0" />
+
+      {/* Auth: Sign In or signed-in email + Sign Out */}
+      {userEmail ? (
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-mono text-canvas-muted truncate max-w-[140px]" title={userEmail}>{userEmail}</span>
+          <button
+            onClick={onSignOut}
+            className="text-[10px] font-mono text-canvas-muted hover:text-canvas-text border border-canvas-accent rounded px-2 py-0.5"
+          >
+            Sign out
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={onSignIn}
+          title={configured ? "Sign in to save your projects" : "Backend not configured on this deploy"}
+          className="px-2.5 py-1 text-[11px] font-semibold rounded bg-canvas-accent/60 text-canvas-text border border-canvas-accent hover:bg-canvas-accent transition-colors"
+        >
+          Sign in
+        </button>
+      )}
 
       {onStartTour && (
         <>

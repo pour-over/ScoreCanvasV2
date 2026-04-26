@@ -19,6 +19,12 @@ interface SidebarProps {
   selectedLevelId: string;
   onSelectLevel: (id: string) => void;
   currentLevel: GameLevel;
+  // Saved-projects integration
+  myProjects?: Array<{ id: string; name: string; subtitle: string | null; updated_at: string }>;
+  activeUserProjectId?: string | null;
+  onOpenUserProject?: (id: string) => void;
+  isSignedIn?: boolean;
+  onForkCurrent?: () => void;
 }
 
 function CollapsibleSection({ title, defaultOpen = true, count, children }: {
@@ -63,7 +69,20 @@ function shortName(project: GameProject): string {
   return map[project.id] ?? project.name;
 }
 
-export function Sidebar({ projects, selectedProjectId, onSelectProject, levels, selectedLevelId, onSelectLevel, currentLevel }: SidebarProps) {
+export function Sidebar({
+  projects,
+  selectedProjectId,
+  onSelectProject,
+  levels,
+  selectedLevelId,
+  onSelectLevel,
+  currentLevel,
+  myProjects = [],
+  activeUserProjectId = null,
+  onOpenUserProject,
+  isSignedIn = false,
+  onForkCurrent,
+}: SidebarProps) {
   const [showAllAssets, setShowAllAssets] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [locked, setLocked] = useState(false);
@@ -174,6 +193,56 @@ export function Sidebar({ projects, selectedProjectId, onSelectProject, levels, 
 
       {/* Scrollable content area */}
       <div className="flex-1 overflow-y-auto scrollbar-thin">
+        {/* My Projects — only when persistence is wired up */}
+        {(isSignedIn || myProjects.length > 0) && (
+          <>
+            <CollapsibleSection title="My Projects" count={myProjects.length}>
+              {myProjects.length === 0 ? (
+                <div className="text-[10px] text-canvas-muted/70 italic px-2 py-2 leading-relaxed">
+                  No saved projects yet. Open a demo and click <span className="font-bold text-purple-300">Fork to my projects</span> to start.
+                </div>
+              ) : (
+                <div className="space-y-0.5">
+                  {myProjects.map((p) => {
+                    const active = p.id === activeUserProjectId;
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => onOpenUserProject?.(p.id)}
+                        className={`w-full text-left px-2.5 py-1.5 rounded transition-colors ${
+                          active
+                            ? "bg-canvas-highlight/15 border-l-2 border-l-canvas-highlight"
+                            : "hover:bg-canvas-accent/30 border-l-2 border-l-transparent"
+                        }`}
+                      >
+                        <div className={`text-[11px] font-bold truncate ${active ? "text-canvas-highlight" : "text-canvas-text"}`}>
+                          {p.name}
+                        </div>
+                        {p.subtitle && (
+                          <div className="text-[9px] text-canvas-muted/70 italic truncate">{p.subtitle}</div>
+                        )}
+                        <div className="text-[8px] text-canvas-muted/50 font-mono">
+                          updated {new Date(p.updated_at).toLocaleDateString()}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+              {onForkCurrent && (
+                <button
+                  onClick={onForkCurrent}
+                  className="mt-2 w-full px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider rounded border border-dashed border-canvas-accent text-canvas-muted hover:text-purple-300 hover:border-purple-500/50 transition-colors flex items-center justify-center gap-1.5"
+                  title="Fork the currently-open project (demo or your own) into a new copy"
+                >
+                  <span className="text-purple-400">⑂</span> Fork current → new copy
+                </button>
+              )}
+            </CollapsibleSection>
+            <div className="mx-3 border-t border-canvas-accent" />
+          </>
+        )}
+
         {/* Levels */}
         <CollapsibleSection title="Levels" count={levels.length}>
           <LevelBrowser levels={levels} selectedId={selectedLevelId} onSelect={onSelectLevel} />

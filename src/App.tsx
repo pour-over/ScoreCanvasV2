@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import type { Node, Edge } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { Canvas } from "./components/Canvas";
 import { Sidebar } from "./components/Sidebar";
@@ -10,19 +11,51 @@ import { GameTutorial, hasTutorialBeenSeen } from "./components/GameTutorial";
 import { WwiseSyncPanel } from "./components/WwiseSyncPanel";
 import { SeguePanel } from "./components/SeguePanel";
 import { DataImportPanel } from "./components/DataImportPanel";
+import { AuthModal } from "./components/AuthModal";
 import { ViewModeProvider } from "./context/ViewModeContext";
+import { AuthProvider, useAuth } from "./auth/AuthContext";
 import { Landing } from "./components/Landing";
 import { stopAudition } from "./audio/synth";
-import { projects } from "./data/projects";
+import { projects as demoProjects } from "./data/projects";
+import type { GameProject, GameLevel } from "./data/projects";
+import { saveProject, loadProject, listMyProjects, forkProject, type ProjectSummary } from "./lib/projects";
 import "./App.css";
 
+// ─── Hash routing helpers ──────────────────────────────────────────────────
+// `#app` shows the tool. `#app/p/{uuid}` shows a specific saved project.
+function parseHash(): { route: "landing" | "app"; projectId: string | null } {
+  const h = window.location.hash || "";
+  if (!h.startsWith("#app")) return { route: "landing", projectId: null };
+  const m = h.match(/^#app\/p\/([0-9a-f-]{36})/i);
+  return { route: "app", projectId: m ? m[1] : null };
+}
+
 function ScoreCanvasApp() {
-  const [selectedProjectId, setSelectedProjectId] = useState(projects[0].id);
-  const currentProject = projects.find((p) => p.id === selectedProjectId) ?? projects[0];
+  const { user, signOut, configured } = useAuth();
+
+  // ─── Project ownership ─────────────────────────────────────────────────
+  // The current project is either a hardcoded demo (read-only-ish, no save)
+  // or one loaded from the DB by uuid. App owns the working copy so it can
+  // serialize for save when the user clicks Save.
+  const [currentProject, setCurrentProject] = useState<GameProject>(demoProjects[0]);
+  const [isUserProject, setIsUserProject] = useState(false);
+  const [savedProjectId, setSavedProjectId] = useState<string | null>(null);
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
+  const [savingState, setSavingState] = useState<"idle" | "saving" | "error">("idle");
 
   const [selectedLevelId, setSelectedLevelId] = useState(currentProject.levels[0].id);
   const currentLevel = currentProject.levels.find((l) => l.id === selectedLevelId) ?? currentProject.levels[0];
 
+  // ─── My Projects (sidebar list) ────────────────────────────────────────
+  const [myProjects, setMyProjects] = useState<ProjectSummary[]>([]);
+  const refreshMyProjects = useCallback(async () => {
+    if (!user) { setMyProjects([]); return; }
+    setMyProjects(await listMyProjects());
+  }, [user]);
+
+  useEffect(() => { refreshMyProjects(); }, [refreshMyProjects]);
+
+  // ─── Modals + panels ───────────────────────────────────────────────────
   const [showProjectAssets, setShowProjectAssets] = useState(false);
   const [showExport, setShowExport] = useState(false);
   const [showStatusReport, setShowStatusReport] = useState(false);
@@ -30,74 +63,213 @@ function ScoreCanvasApp() {
   const [showWwiseSync, setShowWwiseSync] = useState(false);
   const [showSegue, setShowSegue] = useState(false);
   const [importMode, setImportMode] = useState<"level" | "project" | null>(null);
+  const [authReason, setAuthReason] = useState<string | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
 
-  // Listen for window event so any mock AI button anywhere in the app can open SEGUE
+  // ─── Window event listeners (open-segue, open-import, open-auth) ────────
   useEffect(() => {
-    const handler = () => setShowSegue(true);
-    window.addEventListener("open-segue", handler);
-    return () => window.removeEventListener("open-segue", handler);
-  }, []);
-
-  // Listen for "+ New Level" / "+ New Game" buttons anywhere in the app
-  useEffect(() => {
-    const handler = (e: Event) => {
+    const onSegue = () => setShowSegue(true);
+    const onImport = (e: Event) => {
       const detail = (e as CustomEvent<{ mode: "level" | "project" }>).detail;
       if (detail?.mode) setImportMode(detail.mode);
     };
-    window.addEventListener("open-import", handler);
-    return () => window.removeEventListener("open-import", handler);
+    const onAuth = (e: Event) => {
+      const detail = (e as CustomEvent<{ reason?: string }>).detail;
+      setAuthReason(detail?.reason ?? null);
+      setShowAuth(true);
+    };
+    window.addEventListener("open-segue", onSegue);
+    window.addEventListener("open-import", onImport);
+    window.addEventListener("open-auth", onAuth);
+    return () => {
+      window.removeEventListener("open-segue", onSegue);
+      window.removeEventListener("open-import", onImport);
+      window.removeEventListener("open-auth", onAuth);
+    };
   }, []);
 
-  // Launch GameTutorial on first visit (localStorage-gated)
+  // ─── Auto-show tutorial on first visit ─────────────────────────────────
   useEffect(() => {
     if (!hasTutorialBeenSeen()) {
-      const timer = setTimeout(() => setShowTutorial(true), 900);
-      return () => clearTimeout(timer);
+      const t = setTimeout(() => setShowTutorial(true), 900);
+      return () => clearTimeout(t);
     }
   }, []);
 
-  const handleSelectProject = (projectId: string) => {
-    stopAudition(); // fade out current audio before switching
-    setSelectedProjectId(projectId);
-    const proj = projects.find((p) => p.id === projectId) ?? projects[0];
+  // ─── Hash routing → load project if `#app/p/{id}` ──────────────────────
+  useEffect(() => {
+    const { projectId } = parseHash();
+    if (!projectId) return;
+    let cancelled = false;
+    loadProject(projectId).then((p) => {
+      if (cancelled || !p) return;
+      stopAudition();
+      setCurrentProject(p);
+      setIsUserProject(true);
+      setSavedProjectId(p.id);
+      setSavedAt(new Date());
+      setSelectedLevelId(p.levels[0]?.id ?? "");
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Subscribe to hash changes for in-app navigation between user projects
+  useEffect(() => {
+    const onHash = () => {
+      const { projectId } = parseHash();
+      if (!projectId) return;
+      loadProject(projectId).then((p) => {
+        if (!p) return;
+        stopAudition();
+        setCurrentProject(p);
+        setIsUserProject(true);
+        setSavedProjectId(p.id);
+        setSavedAt(new Date());
+        setSelectedLevelId(p.levels[0]?.id ?? "");
+      });
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  // ─── Project / level selection ─────────────────────────────────────────
+  const handleSelectDemoProject = useCallback((projectId: string) => {
+    stopAudition();
+    const proj = demoProjects.find((p) => p.id === projectId) ?? demoProjects[0];
+    setCurrentProject(proj);
+    setIsUserProject(false);
+    setSavedProjectId(null);
+    setSavedAt(null);
     setSelectedLevelId(proj.levels[0].id);
-  };
+    // Drop any project route from the hash; just keep #app
+    if (window.location.hash !== "#app") window.location.hash = "app";
+  }, []);
+
+  const handleOpenUserProject = useCallback((projectId: string) => {
+    window.location.hash = `app/p/${projectId}`;
+  }, []);
+
+  // ─── Canvas → App: keep edits in sync for save ─────────────────────────
+  const handleLevelEdit = useCallback((levelId: string, nodes: Node[], edges: Edge[]) => {
+    setCurrentProject((prev) => ({
+      ...prev,
+      levels: prev.levels.map((l) => l.id === levelId ? { ...l, nodes, edges } : l) as GameLevel[],
+    }));
+  }, []);
+
+  // ─── Save (manual; auto-save lands in Phase 5) ─────────────────────────
+  const handleSave = useCallback(async () => {
+    if (!configured) {
+      setAuthReason("Save isn't configured on this deploy yet — but the demo + tutorial work.");
+      setShowAuth(true);
+      return;
+    }
+    if (!user) {
+      setAuthReason("Sign in to save your project. Magic-link, no password.");
+      setShowAuth(true);
+      return;
+    }
+    setSavingState("saving");
+    try {
+      const id = await saveProject({
+        id: savedProjectId ?? undefined,
+        name: currentProject.name,
+        subtitle: currentProject.subtitle,
+        levels: currentProject.levels,
+      });
+      setSavedProjectId(id);
+      setSavedAt(new Date());
+      setSavingState("idle");
+      setIsUserProject(true);
+      // Promote URL to `#app/p/{id}` so reload re-loads the saved project
+      if (parseHash().projectId !== id) {
+        window.location.hash = `app/p/${id}`;
+      }
+      refreshMyProjects();
+    } catch (err) {
+      console.error(err);
+      setSavingState("error");
+      setTimeout(() => setSavingState("idle"), 3000);
+    }
+  }, [configured, user, savedProjectId, currentProject, refreshMyProjects]);
+
+  const handleForkCurrent = useCallback(async () => {
+    if (!configured) {
+      setAuthReason("Fork-to-my-projects isn't configured on this deploy yet.");
+      setShowAuth(true);
+      return;
+    }
+    if (!user) {
+      setAuthReason("Sign in to fork this demo into your own editable copy.");
+      setShowAuth(true);
+      return;
+    }
+    setSavingState("saving");
+    try {
+      const id = await saveProject(forkProject(currentProject));
+      setSavingState("idle");
+      window.location.hash = `app/p/${id}`;
+      refreshMyProjects();
+    } catch (err) {
+      console.error(err);
+      setSavingState("error");
+      setTimeout(() => setSavingState("idle"), 3000);
+    }
+  }, [configured, user, currentProject, refreshMyProjects]);
 
   return (
     <ViewModeProvider>
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-canvas-bg">
       <TopBar
         projectName={currentProject.name}
-        levelName={currentLevel.name}
-        levelSubtitle={currentLevel.subtitle}
-        nodeCount={currentLevel.nodes.length}
-        edgeCount={currentLevel.edges.length}
-        assetCount={currentLevel.assets.length}
+        levelName={currentLevel?.name ?? ""}
+        levelSubtitle={currentLevel?.subtitle ?? ""}
+        nodeCount={currentLevel?.nodes.length ?? 0}
+        edgeCount={currentLevel?.edges.length ?? 0}
+        assetCount={currentLevel?.assets.length ?? 0}
         onOpenProjectAssets={() => setShowProjectAssets(true)}
         onOpenExport={() => setShowExport(true)}
         onOpenStatusReport={() => setShowStatusReport(true)}
         onStartTour={() => setShowTutorial(true)}
         onOpenWwiseSync={() => setShowWwiseSync(true)}
         onOpenSegue={() => setShowSegue(true)}
+        userEmail={user?.email ?? null}
+        onSignIn={() => { setAuthReason(null); setShowAuth(true); }}
+        onSignOut={signOut}
+        onSave={handleSave}
+        onFork={handleForkCurrent}
+        savingState={savingState}
+        savedAt={savedAt}
+        isUserProject={isUserProject}
+        configured={configured}
       />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
-          projects={projects}
-          selectedProjectId={selectedProjectId}
-          onSelectProject={handleSelectProject}
+          projects={demoProjects}
+          selectedProjectId={isUserProject ? "" : currentProject.id}
+          onSelectProject={handleSelectDemoProject}
           levels={currentProject.levels}
           selectedLevelId={selectedLevelId}
           onSelectLevel={setSelectedLevelId}
           currentLevel={currentLevel}
+          myProjects={myProjects}
+          activeUserProjectId={isUserProject ? savedProjectId : null}
+          onOpenUserProject={handleOpenUserProject}
+          isSignedIn={!!user}
+          onForkCurrent={handleForkCurrent}
         />
         <ReactFlowProvider>
-          <Canvas level={currentLevel} projectId={currentProject.id} />
+          <Canvas
+            level={currentLevel}
+            projectId={currentProject.id}
+            onLevelEdit={isUserProject ? handleLevelEdit : undefined}
+          />
         </ReactFlowProvider>
       </div>
       {showProjectAssets && (
         <ProjectAssets levels={currentProject.levels} projectName={currentProject.name} onClose={() => setShowProjectAssets(false)} />
       )}
-      {showExport && (
+      {showExport && currentLevel && (
         <ExportModal level={currentLevel} onClose={() => setShowExport(false)} />
       )}
       {showStatusReport && (
@@ -115,7 +287,10 @@ function ScoreCanvasApp() {
       {importMode && (
         <DataImportPanel mode={importMode} onClose={() => setImportMode(null)} />
       )}
-      {/* Waitlist CTA — fixed bottom-right */}
+      {showAuth && (
+        <AuthModal reason={authReason ?? undefined} onClose={() => setShowAuth(false)} />
+      )}
+      {/* Waitlist CTA — fixed bottom-left */}
       <a
         href="#waitlist"
         onClick={(e) => { e.preventDefault(); window.location.hash = ""; setTimeout(() => { document.getElementById("waitlist")?.scrollIntoView({ behavior: "smooth" }); }, 100); }}
@@ -129,21 +304,17 @@ function ScoreCanvasApp() {
 }
 
 export default function App() {
-  const [view, setView] = useState<"landing" | "app">(() => {
-    return window.location.hash === "#app" ? "app" : "landing";
-  });
+  const [view, setView] = useState<"landing" | "app">(() => parseHash().route);
 
   useEffect(() => {
-    const onHashChange = () => {
-      setView(window.location.hash === "#app" ? "app" : "landing");
-    };
+    const onHashChange = () => setView(parseHash().route);
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  if (view === "app") {
-    return <ScoreCanvasApp />;
-  }
-
-  return <Landing />;
+  return (
+    <AuthProvider>
+      {view === "app" ? <ScoreCanvasApp /> : <Landing />}
+    </AuthProvider>
+  );
 }
