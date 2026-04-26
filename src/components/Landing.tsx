@@ -412,8 +412,9 @@ export function Landing() {
                   <div>→ <span className="text-canvas-highlight">intro_auto_matched</span> <span className="text-yellow-400">generating...</span></div>
                   <div>→ <span className="text-canvas-highlight">segue_to_explore</span> <span className="text-yellow-400">generating...</span></div>
                   <div>→ <span className="text-canvas-highlight">endtag_cadential</span> <span className="text-canvas-muted">queued</span></div>
-                  <div className="text-[10px] text-canvas-muted/60 mt-2 pt-2 border-t border-canvas-accent/20">
-                    6 variants from 1 source · ~4s avg
+                  <div className="text-[10px] text-canvas-muted/60 mt-2 pt-2 border-t border-canvas-accent/20 space-y-0.5">
+                    <div>6 variants from 1 source · ~4s avg · suno V5</div>
+                    <div className="text-purple-300/70">all outputs instrumental · wordless vocals only</div>
                   </div>
                 </div>
               </div>

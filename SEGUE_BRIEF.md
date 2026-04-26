@@ -27,10 +27,68 @@ Six capabilities, all operating on **stems** (separated instrument layers), not 
 
 ## Tech direction
 
-- **Generation backend**: Suno API via **Kie.ai** (https://kie.ai — Suno proxy with dev-friendly pricing)
-- **Stem split**: Likely Demucs / Spleeter / Moises API
-- **Analysis**: Essentia.js or similar audio-feature extractors
-- Target latency: ~4 seconds per variant
+- **Generation backend**: **Suno V5** via Kie.ai (https://kie.ai). V5 is Suno's
+  current public flagship — best low-end stability, best instrument separation,
+  best progression coherence for transitions specifically. Kie.ai also exposes
+  `V3.5`, `V4`, `V4_5`, `V4_5PLUS` as cheaper fallback tiers for bulk operations
+  where quality is less critical.
+- **Stem split**: Kie.ai's `Separate Vocals` endpoint only splits vocal vs.
+  instrumental. For the four-way stem separation in the brief (drums / bass /
+  melody / pads), use **Demucs** (htdemucs_ft model) or **Moises API** alongside.
+  Run both in parallel — Demucs gives clean stems, Suno's separator is faster
+  for the vocal/instrumental split when that's all you need.
+- **Analysis**: Kie.ai's `Generate MIDI From Audio` endpoint gives free key /
+  tempo / structure analysis as a side effect — cheaper than running Essentia.js
+  for that subset of metadata. Use Essentia.js only for things MIDI extraction
+  doesn't capture (mood, intensity, instrument tags).
+- **Target latency**: ~4 seconds per variant on V5.
+
+### kie.ai endpoint mapping
+
+Each Segue capability maps to a specific kie.ai/Suno endpoint. Build the SDK
+around this mapping — every `SegueClient` method should be a thin wrapper.
+
+| Segue capability | kie.ai endpoint | Notes |
+|------------------|-----------------|-------|
+| Stem variation | `Generate` (custom mode, `instrumental: true`, `model: V5`) | Pass source style tags + a transformation prompt ("less intense", "swap strings for synths"). Loop until acceptable. |
+| Stem variation in different genre | `Cover Generate` or `Boost Music Style` | Cover preserves structure, swaps timbre. Boost is stylistic re-prompting. |
+| Custom intro | `Extend` (back-extend from theme start) | Suno V5's extend handles musical lead-ins natively. |
+| Custom ending / endtag | `Extend` (forward-extend from theme end) | Same primitive, opposite direction. |
+| **Custom transition (X → Y)** | `Replace Section` (5 credits) | The closest Suno primitive to a true musical bridge. Provide both source themes as concatenated input, set `infillStartS` / `infillEndS` to the bridge window, prompt the modulation. **This is the killer endpoint for Segue's whole pitch.** |
+| AI stem split (vocal vs instrumental only) | `Separate Vocals` | Free / fast. Use as a pre-step before Demucs. |
+| AI stem split (4-way) | Demucs htdemucs_ft (not kie.ai) | Run separately; cache results. |
+| Analyze & tag (key, BPM, structure) | `Generate MIDI From Audio` | Free side effect; parse the MIDI for tempo / key / structure. |
+| Analyze & tag (mood / instrument / intensity) | Essentia.js client-side | Suno doesn't expose these; do it locally. |
+| Mashup / theme blending | `Mashup` | Future capability, not v1. |
+
+### The instrumental constraint (non-negotiable)
+
+**All Segue generations are instrumental by default. No lyrics. Ever. In
+transitions, intros, endings, and stem variations.** Game music is overwhelmingly
+instrumental, and a generated transition that suddenly contains lyrics destroys
+the source material's narrative continuity.
+
+Implementation rules:
+- Every Suno API call must include `instrumental: true` (it's a top-level flag
+  in the kie.ai `Generate` schema — never omit it).
+- For "wordless vocal" textures (Halo's choral *aaahs*, *ImaginedLanguage* Latin
+  chants, FromSoft monastic vocalise, Journey-style sustained *oohs*), prompt
+  them as instrumental layers using descriptive style tags:
+  - `wordless choir`
+  - `vocalise pad`
+  - `sustained ahhs no lyrics`
+  - `invented-language chant, ceremonial, no English`
+  - `humming choir, no words`
+  Combined with `instrumental: true`, this reliably produces voice-as-texture
+  without Suno hallucinating lyrics.
+- If the user explicitly opts in to vocal generation (a future advanced feature,
+  not v1), the SDK should require an explicit `allowLyrics: true` argument that
+  defaults to `false` and is hard-disabled for transition / intro / ending kinds.
+- **Test gate**: every Segue endpoint should have an automated test that asserts
+  no generated output transcript contains identifiable English words. Use a
+  fast speech-to-text on the output, fail the test if any word with > 90%
+  confidence is detected. This protects against Suno regressions where the
+  instrumental flag might be ignored.
 
 ## Integration with Score Canvas
 
@@ -70,14 +128,33 @@ segue/
 
 ## Suggested first tasks
 
-1. Scaffold the API (Fastify / Hono) with a Kie.ai client wrapper — stub out `/generate` to hit Suno and return a job ID.
-2. Build the stem-variation endpoint first (highest leverage — hits the core X→Y use case).
-3. Define the TypeScript SDK interface that Score Canvas will consume, so the Score Canvas integration can be stubbed in parallel.
-4. Get one end-to-end variation working (upload WAV → Suno gen → downloadable output).
-5. Iterate from there: intros → endtags → transitions → stem split → analyze.
+1. Scaffold the API (Fastify / Hono) with a Kie.ai client wrapper — stub out
+   `/generate` to hit Suno V5 (`model: "V5"`, `instrumental: true` always) and
+   return a job ID.
+2. Add the **instrumental test gate** before shipping any endpoint: automated
+   test that runs generated output through speech-to-text and fails if
+   recognizable lyrics appear. This is non-negotiable — Suno regressions on
+   the `instrumental` flag are a real risk.
+3. Build the **stem-variation** endpoint first (highest leverage — hits the
+   core X→Y use case), using `Generate` with custom-mode + style transformation
+   prompts.
+4. Define the TypeScript SDK interface that Score Canvas will consume, so the
+   Score Canvas integration can be stubbed in parallel.
+5. Get one end-to-end variation working (upload WAV → Suno V5 gen → downloadable
+   instrumental output).
+6. Build the **transition** endpoint next using `Replace Section` — this is the
+   killer feature, the namesake, the differentiator. Two source clips concatenated
+   with an `infill` window in the middle, prompted to bridge them.
+7. Iterate from there: intros (`Extend` back) → endtags (`Extend` forward) →
+   stem split (`Separate Vocals` + Demucs) → analyze (`Generate MIDI From Audio`
+   + Essentia.js).
 
 ## Constraints & design principles
 
+- **Instrumental, always.** No lyrics in any Segue output. Ever. Wordless vocals
+  (vocalise, choir *aaahs*, invented-language chants) are allowed and treated
+  as instrumental textures with explicit style tags. See "The instrumental
+  constraint" above for full implementation rules.
 - **Stem-aware from day 1**: everything operates on isolated stems, not mixed tracks. The "X→Y" framing only works when you can target specific layers.
 - **Key/BPM preserved by default**: generated output must match the source theme musically. No accidental modulations.
 - **Async, with preview**: users should see a generating state + hear a 10-second preview ASAP, full output later.
@@ -108,4 +185,9 @@ Ted's brand voice: knowledgeable but dry-humored, industry-insider, never overse
 2. Create a new GitHub repo `pour-over/Segue` (private until API is stable)
 3. Pick your stack (Node+TypeScript recommended for SDK parity with Score Canvas) and scaffold `api/` + `sdk/`
 4. Read `SeguePanel.tsx` in the ScoreCanvasV2 repo — it's the visual spec.
-5. Sign up for kie.ai, grab an API key, and get one stem variation working end-to-end.
+5. Sign up for kie.ai, grab an API key.
+6. Get one **instrumental** stem variation working end-to-end on Suno V5
+   (`model: "V5"`, `instrumental: true`). Do NOT skip the instrumental flag —
+   even on the smoke-test request.
+7. Add the speech-to-text instrumental test gate before adding the second
+   endpoint. Every endpoint built afterward must pass it.

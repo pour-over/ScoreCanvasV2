@@ -69,7 +69,10 @@ export function SeguePanel({ onClose }: SeguePanelProps) {
 
           {/* What it generates — capability grid */}
           <div>
-            <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-purple-300/80 mb-3">What SEGUE Generates</div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-purple-300/80">What SEGUE Generates</div>
+              <div className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30">instrumental, always</div>
+            </div>
             <div className="grid grid-cols-2 gap-2.5">
               <div className="bg-[#0a0a18] border border-canvas-accent/40 rounded-lg p-3">
                 <div className="flex items-center gap-2 mb-1.5">
@@ -130,8 +133,9 @@ export function SeguePanel({ onClose }: SeguePanelProps) {
               <div>→ <span className="text-canvas-highlight">theme_intro_auto_matched.wav</span> <span className="text-yellow-400">generating...</span></div>
               <div>→ <span className="text-canvas-highlight">theme_segue_to_explore.wav</span> <span className="text-yellow-400">generating...</span></div>
               <div>→ <span className="text-canvas-highlight">theme_endtag_cadential.wav</span> <span className="text-canvas-muted">queued</span></div>
-              <div className="text-[10px] text-canvas-muted/60 mt-2 pt-2 border-t border-canvas-accent/20">
-                6 variants from 1 source · ~4s avg · suno/v4 via kie.ai
+              <div className="text-[10px] text-canvas-muted/60 mt-2 pt-2 border-t border-canvas-accent/20 space-y-0.5">
+                <div>6 variants from 1 source · ~4s avg · suno V5 via kie.ai</div>
+                <div className="text-purple-300/70">all outputs instrumental · wordless vocals only</div>
               </div>
             </div>
           </div>
