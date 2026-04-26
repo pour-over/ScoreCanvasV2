@@ -56,7 +56,7 @@ around this mapping — every `SegueClient` method should be a thin wrapper.
 | Custom ending / endtag | `Extend` (forward-extend from theme end) | Same primitive, opposite direction. |
 | **Custom transition (X → Y)** | `Replace Section` (5 credits) | The closest Suno primitive to a true musical bridge. Provide both source themes as concatenated input, set `infillStartS` / `infillEndS` to the bridge window, prompt the modulation. **This is the killer endpoint for Segue's whole pitch.** |
 | AI stem split (vocal vs instrumental only) | `Separate Vocals` | Free / fast. Use as a pre-step before Demucs. |
-| AI stem split (4-way) | Demucs htdemucs_ft (not kie.ai) | Run separately; cache results. |
+| AI stem split (4-way: drums/bass/melody/pads) | Demucs `htdemucs_ft` (NOT Suno) | Suno's stem operation costs ~50 credits and is slower than Demucs while producing worse 4-way splits. Run Demucs in a worker (htdemucs_ft model, ~5–15s per track), cache results in object storage. Free per call after setup. |
 | Analyze & tag (key, BPM, structure) | `Generate MIDI From Audio` | Free side effect; parse the MIDI for tempo / key / structure. |
 | Analyze & tag (mood / instrument / intensity) | Essentia.js client-side | Suno doesn't expose these; do it locally. |
 | Mashup / theme blending | `Mashup` | Future capability, not v1. |
@@ -155,11 +155,43 @@ segue/
   (vocalise, choir *aaahs*, invented-language chants) are allowed and treated
   as instrumental textures with explicit style tags. See "The instrumental
   constraint" above for full implementation rules.
+- **Never lose a generation.** Every output is persisted to object storage as
+  soon as it renders. Never expires. Never garbage-collected. The cost is
+  bytes; the value is the user's trust in the iteration loop. The moment a
+  composer feels they've "lost" a take they liked, the iterate-cheaply story
+  dies. See "Generation library + favorites" below.
 - **Stem-aware from day 1**: everything operates on isolated stems, not mixed tracks. The "X→Y" framing only works when you can target specific layers.
 - **Key/BPM preserved by default**: generated output must match the source theme musically. No accidental modulations.
 - **Async, with preview**: users should see a generating state + hear a 10-second preview ASAP, full output later.
 - **Editorially opinionated**: SEGUE is not a general-purpose music AI. It's a transition engine. The prompt scaffolding should enforce that ("generate a 4-bar bridge from [key,bpm,mood] A to [key,bpm,mood] B").
 - **The name matters**: segues are what editors do. The product experience should feel like hiring a very fast, very musical editor — not a slot machine.
+
+## Generation library + favorites (the iteration loop)
+
+Score Canvas's product narrative is **Design · Iterate · Review · Ship**. Iterate
+is the longest leg of that loop, and Segue is the engine that makes it cheap.
+The data contract Segue owes Score Canvas:
+
+- **Every generation is permanent.** Output URL stays valid forever. No
+  expiring presigned URLs that break "reopen this project six months later."
+- **Every generation is attributed to a node.** When Segue finishes a request,
+  the resulting asset record includes the originating Score Canvas `nodeId`
+  and `projectId`. Score Canvas can then list "every variant ever generated
+  for this Combat-Hi music state" inline in the node's detail panel.
+- **Favorites are first-class.** The asset record has a `starred: boolean`
+  field. The Score Canvas UI surfaces a "favorites only" filter. The composer
+  picks winners by ear, not by tracking down filenames in Slack.
+- **Generations are listable, filterable, retrievable.** SDK methods:
+  `listGenerations({ nodeId, kind, starred })`, `getGeneration(id)`,
+  `starGeneration(id, starred)`, `addNote(id, text)`. All cheap, all idempotent.
+- **A/B compare is supported by the SDK.** `compareGenerations([idA, idB])`
+  returns synchronized stream URLs + waveform peak data so the Score Canvas UI
+  can render the two-track comparison view without doing extra audio decode work.
+
+The "trash" semantic also matters: when a user "deletes" a generation, the SDK
+should soft-delete it (`deletedAt` timestamp) with 30-day retention before
+hard-deleting. Restore = clear the timestamp. Cost is negligible; user trust
+is enormous.
 
 ## Not in scope for v1
 

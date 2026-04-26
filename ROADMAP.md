@@ -84,12 +84,27 @@ Segue is cross-cutting:
 
 ### Core (near-term, v2.5)
 
+- **Iteration core** (highest priority — see "Iteration & favorites" below)
 - Live Wwise Sync via WAAPI (two-way session connection)
 - Segue integration for in-tool AI buttons (currently roadmap teasers)
 - Annotation edges with compound conditions (e.g., "Whale retreats + Scarf < 40")
 - Real-time stem preview mixing in the Stem Editor
 - Actual Wwise/FMOD project file export (not just templates)
 - Navigation dropdown for all states/transitions/stingers
+
+### Iteration & favorites (v2.5 — the new core)
+
+The product narrative is now **Design · Iterate · Review · Ship**. Iterate is the longest leg of that loop, and the one users spend the most time in. The product has to make iteration feel cheap and lossless.
+
+- **Generation library per node.** Every Segue output (variation, intro, ending, transition) is permanently attached to the node it was generated for. Open the node, see every variant you've ever tried, click any one to swap it in.
+- **Favorites.** Star any generated output to mark it as a candidate. The Project Assets panel can filter to show only starred candidates. Composers + audio leads pick winners by ear, not by tracking down filenames in Slack.
+- **A/B compare.** Two-track listening UI: pick any two generations on the same node and audition them back-to-back, with shared transport and instant flip. The single most-requested feature anyone who has ever picked a take has ever asked for.
+- **Version history per project.** Every save is a checkpoint. Roll back to last Tuesday's graph in one click. No "ugh, that was better before" disasters.
+- **Trash, not delete.** Deleted nodes / edges / generations move to a per-project trash with 30-day retention. Restore in one click.
+- **Autosave.** Every change is saved on debounce — no Ctrl-S culture, no lost work from a crashed tab.
+- **Never lose a generation.** Every Segue output is persisted to object storage as soon as it's rendered. Never expires. Cost is bytes, value is irreversible.
+
+The principle behind all of it: **iteration is supposed to be cheap. The tool is supposed to remember every idea you tried, including the bad ones, because the bad ones are how you found the good ones.**
 
 ### Core (further out)
 
@@ -175,6 +190,10 @@ High-level:
 9. **The 60-second pitch is the killer demo moment.** A non-audio leader (VP, producer, creative director) opens Score Canvas, looks at the graph, presses Play, and groks the entire music system in under a minute. No other tool does this. Every product surface should reinforce that property — the layout, the simple-mode default, the audition flow, and especially the "share this with your VP" affordances.
 
 10. **Studio-friendly is a feature category, not a checklist.** SSO, secure share links, audit logs, on-prem options, RBAC — these aren't optional add-ons for big customers, they're the difference between getting on a studio's tool stack and not. They go in the marketing prominently (see "Built for Studios" section on the landing) even when they're roadmap, because they signal seriousness to the people who write the checks.
+
+11. **Design · Iterate · Review · Ship is the canonical product narrative.** Older 3-verb framings (Design / Audition / Deliver) collapsed Iterate and Review into a single "audition" step and lost the most important truth about how this work actually happens. Music systems aren't designed once — they're iterated on for months. The product must make iteration cheap and review frictionless, or it's just a prettier spreadsheet.
+
+12. **Never lose a generation.** Every Segue output, every saved variant, every starred favorite persists to object storage forever. Cost is bytes; value is irreversible. The instant a user feels they've "lost" a take they liked, the trust in the iteration loop dies. Implementation rules: autosave on debounce, deleted-but-recoverable trash, version history, generation library per node.
 
 ---
 

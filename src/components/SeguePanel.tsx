@@ -6,6 +6,8 @@
  * instantly, for style ideation. Powered by Suno via Kie.ai (planned).
  */
 
+import { SegueDemoGallery } from "./SegueDemoGallery";
+
 interface SeguePanelProps {
   onClose: () => void;
 }
@@ -119,25 +121,13 @@ export function SeguePanel({ onClose }: SeguePanelProps) {
             </div>
           </div>
 
-          {/* Mock terminal preview */}
-          <div className="bg-[#0a0a18] border border-purple-500/30 rounded-lg p-4 font-mono text-[11px]">
-            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-canvas-accent/30">
-              <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-              <span className="text-purple-300 font-bold">SEGUE · generating stem variations</span>
-              <span className="text-canvas-muted ml-auto text-[9px]">input: clean_theme_combat.wav</span>
+          {/* Real audio demo — playable, decoded waveforms */}
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-purple-300/80">Hear It · Sample Outputs</div>
+              <div className="ml-auto text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30">instrumental, always</div>
             </div>
-            <div className="space-y-1 text-canvas-muted">
-              <div>✓ <span className="text-canvas-highlight">theme_variation_01_low_intensity.wav</span> <span className="text-green-400">ready (3.2s)</span></div>
-              <div>✓ <span className="text-canvas-highlight">theme_variation_02_drums_only.wav</span> <span className="text-green-400">ready (2.8s)</span></div>
-              <div>✓ <span className="text-canvas-highlight">theme_variation_03_orchestral_swap.wav</span> <span className="text-green-400">ready (4.1s)</span></div>
-              <div>→ <span className="text-canvas-highlight">theme_intro_auto_matched.wav</span> <span className="text-yellow-400">generating...</span></div>
-              <div>→ <span className="text-canvas-highlight">theme_segue_to_explore.wav</span> <span className="text-yellow-400">generating...</span></div>
-              <div>→ <span className="text-canvas-highlight">theme_endtag_cadential.wav</span> <span className="text-canvas-muted">queued</span></div>
-              <div className="text-[10px] text-canvas-muted/60 mt-2 pt-2 border-t border-canvas-accent/20 space-y-0.5">
-                <div>6 variants from 1 source · ~4s avg · suno V5 via kie.ai</div>
-                <div className="text-purple-300/70">all outputs instrumental · wordless vocals only</div>
-              </div>
-            </div>
+            <SegueDemoGallery />
           </div>
 
           {/* Why it matters */}

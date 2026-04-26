@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { SegueDemoGallery } from "./SegueDemoGallery";
 
 // ─── Animated node graph mock ───────────────────────────────────────────────
 
@@ -152,6 +153,7 @@ export function Landing() {
             <a href="#workflow" className="text-xs text-canvas-muted hover:text-canvas-text transition-colors">Workflow</a>
             <a href="#for-teams" className="text-xs text-canvas-muted hover:text-canvas-text transition-colors">For Teams</a>
             <a href="#features" className="text-xs text-canvas-muted hover:text-canvas-text transition-colors">Features</a>
+            <a href="#hear-it" className="text-xs text-canvas-muted hover:text-canvas-text transition-colors">Hear It</a>
             <a href="#for-studios" className="text-xs text-canvas-muted hover:text-canvas-text transition-colors">For Studios</a>
             <a href="#roadmap" className="text-xs text-canvas-muted hover:text-canvas-text transition-colors">Roadmap</a>
             <a href="#waitlist" className="text-xs text-canvas-muted hover:text-canvas-text transition-colors">Early Access</a>
@@ -190,7 +192,7 @@ export function Landing() {
           </h1>
 
           <p className="text-xl text-canvas-muted max-w-2xl mx-auto mb-8 font-semibold tracking-wide">
-            Design. Audition. Deliver.
+            Design. Iterate. Review. Ship.
           </p>
 
           <p className="text-sm text-canvas-muted/80 max-w-xl mx-auto mb-10 leading-relaxed">
@@ -217,38 +219,45 @@ export function Landing() {
         </div>
       </section>
 
-      {/* ═══ Three-Verb Workflow ═══ */}
+      {/* ═══ Four-Verb Workflow: Design / Iterate / Review / Ship ═══ */}
       <section id="workflow" className="py-24 px-6 border-t border-canvas-accent/20">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-canvas-highlight mb-3">The Workflow</p>
-            <h2 className="text-3xl md:text-4xl font-black mb-3">Three steps. Zero spreadsheets.</h2>
+            <h2 className="text-3xl md:text-4xl font-black mb-3">Four steps. The whole loop.</h2>
             <p className="text-sm text-canvas-muted max-w-xl mx-auto">
-              From first sketch to production handoff — all in one tool, all in your browser.
+              Music systems aren't designed once. They're iterated on for months. Score Canvas is built for that loop, not against it.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-4 gap-4">
             <VerbCard
               verb="Design"
               tagline="Step One"
               icon="✎"
               color="#4ecdc4"
-              desc="Drag, connect, and structure your interactive music system visually. Music states, transitions, stingers, RTPCs, events — all on one canvas you can actually read."
+              desc="Drag, connect, structure your music system visually. Music states, transitions, stingers, RTPCs, events — one canvas you can read at a glance."
             />
             <VerbCard
-              verb="Audition"
+              verb="Iterate"
               tagline="Step Two"
-              icon="♪"
-              color="#e94560"
-              desc="Hear every transition, layer, and stinger play back live in the browser. Tweak the flow, re-audition instantly. No DAW. No middleware build. No three-sprint wait."
+              icon="↻"
+              color="#a855f7"
+              desc="Audition every node live. Generate variations with Segue. Save favorites, compare A/B, never lose a take. The good ideas stay; the rest are one undo away."
             />
             <VerbCard
-              verb="Deliver"
+              verb="Review"
               tagline="Step Three"
+              icon="◐"
+              color="#e94560"
+              desc="Send a share link to your VP, producer, or composer. They open one URL, walk the graph, leave comments on specific nodes. No audio call required."
+            />
+            <VerbCard
+              verb="Ship"
+              tagline="Step Four"
               icon="⇢"
               color="#818cf8"
-              desc="Export Wwise-ready schemas, FMOD templates, or JSON for any pipeline. Your audio programmer gets production-perfect specs — not a 40-page doc and a prayer."
+              desc="Export Wwise-ready schemas, FMOD templates, or JSON. Audio programmers get production-perfect specs — not a 40-page doc and a prayer."
             />
           </div>
         </div>
@@ -465,6 +474,25 @@ export function Landing() {
         </div>
       </section>
 
+      {/* ═══ Hear It — real audio demo of Segue's intended output ═══ */}
+      <section id="hear-it" className="py-24 px-6 border-t border-canvas-accent/20 bg-gradient-to-b from-purple-500/5 via-transparent to-transparent">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-purple-300 mb-3">Hear It</p>
+            <h2 className="text-3xl md:text-4xl font-black mb-3">One source theme.<br/><span className="bg-gradient-to-r from-purple-300 to-cyan-300 bg-clip-text text-transparent">A whole score's worth of variations.</span></h2>
+            <p className="text-sm text-canvas-muted max-w-xl mx-auto leading-relaxed">
+              Press play on the source theme at the top. Then play any of the variations, level themes, stingers, or cinematic cues underneath. Every output below is the kind of variety Segue is being designed to generate from a single source.
+            </p>
+          </div>
+          <div className="bg-[#0d0d1a]/80 border border-purple-500/30 rounded-2xl p-5 md:p-6">
+            <SegueDemoGallery />
+          </div>
+          <p className="text-[11px] text-canvas-muted/60 text-center mt-5 leading-relaxed">
+            Want this for your own project? <a href="#waitlist" className="text-canvas-highlight hover:underline">Join the waitlist</a> — first cohort gets Segue at cost when it ships.
+          </p>
+        </div>
+      </section>
+
       {/* ═══ Built for Studios — Enterprise / SSO / Bulk Import roadmap ═══ */}
       <section id="for-studios" className="py-24 px-6 border-t border-canvas-accent/20">
         <div className="max-w-5xl mx-auto">
@@ -671,7 +699,7 @@ export function Landing() {
             <span>Score Canvas</span>
           </div>
           <div className="font-mono text-[10px] text-canvas-muted/60">
-            Design. Audition. Deliver.
+            Design. Iterate. Review. Ship.
           </div>
         </div>
       </footer>
