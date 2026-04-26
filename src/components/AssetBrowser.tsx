@@ -1,6 +1,7 @@
 import { useState, type DragEvent } from "react";
 import type { MusicAsset } from "../data/projects";
-import { auditionAsset, stopAudition, type AssetCategory } from "../audio/synth";
+import { stopAudition, type AssetCategory } from "../audio/synth";
+import { priorityAuditionAsset } from "../audio/coordinator";
 import { StemEditor } from "./StemEditor";
 
 interface AssetBrowserProps {
@@ -28,13 +29,16 @@ export function AssetBrowser({ assets }: AssetBrowserProps) {
   const sorted = order.filter((c) => grouped[c]);
 
   const handlePlay = async (asset: MusicAsset) => {
-    const started = await auditionAsset({
-      id: asset.id,
-      category: asset.category as AssetCategory,
-      key: asset.key,
-      bpm: asset.bpm,
-      audioFile: asset.audioFile,
-    });
+    const started = await priorityAuditionAsset(
+      {
+        id: asset.id,
+        category: asset.category as AssetCategory,
+        key: asset.key,
+        bpm: asset.bpm,
+        audioFile: asset.audioFile,
+      },
+      "asset-browser",
+    );
     const durationMs = started;
     setPlayingId(durationMs > 0 ? asset.id : null);
     if (durationMs > 0) {
@@ -103,6 +107,18 @@ export function AssetBrowser({ assets }: AssetBrowserProps) {
                     ) : (
                       <svg width="8" height="8" viewBox="0 0 8 8"><polygon points="1,0 8,4 1,8" fill="currentColor"/></svg>
                     )}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.dispatchEvent(
+                        new CustomEvent("segue-generate", { detail: { asset, kind: "variation" } }),
+                      );
+                    }}
+                    title="Open SEGUE — generate variation / intro / endtag / transition / split / analyze"
+                    className="w-5 h-5 rounded flex items-center justify-center shrink-0 bg-purple-900/20 text-purple-300 hover:bg-purple-500/30 hover:text-purple-100 border border-purple-500/20 transition-colors"
+                  >
+                    <span className="text-[10px] leading-none">✦</span>
                   </button>
                   <div className="min-w-0 flex-1">
                     <div className="text-[10px] font-mono text-canvas-text truncate flex items-center gap-1">

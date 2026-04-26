@@ -1,6 +1,7 @@
 import { useState, type DragEvent } from "react";
 import type { GameLevel, MusicAsset } from "../data/projects";
-import { auditionAsset, stopAudition, type AssetCategory } from "../audio/synth";
+import { stopAudition, type AssetCategory } from "../audio/synth";
+import { priorityAuditionAsset } from "../audio/coordinator";
 import { Waveform } from "./Waveform";
 
 interface ProjectAssetsProps {
@@ -55,7 +56,7 @@ export function ProjectAssets({ levels, projectName, onClose }: ProjectAssetsPro
   const categories = ["all", "intro", "loop", "transition", "stinger", "ending", "layer", "ambient"];
 
   const handlePlay = async (asset: MusicAsset & { levelName: string }) => {
-    const durationMs = await auditionAsset({ id: asset.id, category: asset.category as AssetCategory, key: asset.key, bpm: asset.bpm, audioFile: asset.audioFile });
+    const durationMs = await priorityAuditionAsset({ id: asset.id, category: asset.category as AssetCategory, key: asset.key, bpm: asset.bpm, audioFile: asset.audioFile }, "project-assets");
     setPlayingId(durationMs > 0 ? asset.id : null);
     if (durationMs > 0) {
       setTimeout(() => setPlayingId((curr) => curr === asset.id ? null : curr), durationMs + 200);
@@ -251,7 +252,7 @@ export function ProjectAssets({ levels, projectName, onClose }: ProjectAssetsPro
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      auditionAsset({ id: asset.id + "-trans", category: asset.category as AssetCategory, key: asset.key, bpm: asset.bpm, audioFile: asset.audioFile, playbackMode: "transition" });
+                                      priorityAuditionAsset({ id: asset.id + "-trans", category: asset.category as AssetCategory, key: asset.key, bpm: asset.bpm, audioFile: asset.audioFile, playbackMode: "transition" }, "project-assets");
                                       setPlayingId(asset.id);
                                     }}
                                     className="px-2.5 py-1 text-[9px] font-bold rounded bg-cyan-900/30 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-500/20"

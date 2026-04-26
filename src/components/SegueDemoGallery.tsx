@@ -12,7 +12,8 @@
  */
 
 import { useEffect, useState } from "react";
-import { auditionAsset, stopAudition, getPlayingAssetId } from "../audio/synth";
+import { stopAudition, getPlayingAssetId } from "../audio/synth";
+import { priorityAuditionAsset } from "../audio/coordinator";
 import { Waveform } from "./Waveform";
 
 interface DemoTrack {
@@ -129,7 +130,7 @@ export function SegueDemoGallery({ compact = false }: SegueDemoGalleryProps) {
     }
     stopAudition();
     setPlayingId(track.id);
-    const dur = await auditionAsset({
+    const dur = await priorityAuditionAsset({
       id: track.id,
       category: track.kind === "stinger" ? "stinger" : track.kind === "cinematic" ? "intro" : "loop",
       key: "Dm",

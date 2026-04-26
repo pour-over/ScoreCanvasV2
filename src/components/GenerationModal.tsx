@@ -53,13 +53,32 @@ function resolveAudioUrl(asset: MusicAsset): string {
   return new URL(path, base).toString();
 }
 
+const KIND_ICON: Record<SegueKind, string> = {
+  variation: "✦",
+  intro: "⤴",
+  endtag: "⤵",
+  segue: "↔",
+  split: "≡",
+  analyze: "♪",
+};
+
 export function GenerationModal({ request, onClose }: GenerationModalProps) {
-  const { asset, kind } = request;
-  const [prompt, setPrompt] = useState(request.prompt ?? KIND_DEFAULT_PROMPT[kind]);
+  const { asset } = request;
+  const [kind, setKind] = useState<SegueKind>(request.kind);
+  const [prompt, setPrompt] = useState(request.prompt ?? KIND_DEFAULT_PROMPT[request.kind]);
   const [job, setJob] = useState<SegueJob | null>(null);
   const [jobId, setJobId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // When user switches kind via the picker, swap the default prompt unless
+  // they've already typed a custom one.
+  const onPickKind = (k: SegueKind) => {
+    setKind(k);
+    setPrompt((prev) =>
+      prev === KIND_DEFAULT_PROMPT[kind] || prev === "" ? KIND_DEFAULT_PROMPT[k] : prev,
+    );
+  };
 
   const sourceUrl = (() => {
     try {
@@ -128,6 +147,23 @@ export function GenerationModal({ request, onClose }: GenerationModalProps) {
           <div className="text-xs text-zinc-400">
             Source: <code className="text-zinc-200">{asset.filename}</code> · {asset.key} · {asset.bpm} BPM
             {asset.duration ? ` · ${asset.duration}` : ""}
+          </div>
+
+          <div className="flex flex-wrap gap-1.5">
+            {(["variation", "intro", "endtag", "segue", "split", "analyze"] as SegueKind[]).map((k) => (
+              <button
+                key={k}
+                onClick={() => onPickKind(k)}
+                className={`px-2.5 py-1 text-[10px] font-semibold rounded border transition-colors ${
+                  kind === k
+                    ? "bg-purple-500/30 border-purple-500/60 text-purple-100"
+                    : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200"
+                }`}
+              >
+                <span className="mr-1">{KIND_ICON[k]}</span>
+                {KIND_LABEL[k].replace(/^Generate /, "")}
+              </button>
+            ))}
           </div>
 
           {localOnly && (

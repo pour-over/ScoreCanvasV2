@@ -568,6 +568,27 @@ export function Canvas({ level, projectId, onLevelEdit }: CanvasProps) {
     }
   }, [sequencePlaying]);
 
+  // ─── Audition takes priority over the timeline ──────────────────────────
+  // When any panel (AssetBrowser, ProjectAssets, etc.) starts a user-initiated
+  // audition via priorityAuditionAsset(), it dispatches "audition-priority-play".
+  // Pause the sequence STATE (don't call stopAudition — auditionAsset handles
+  // the audio takeover internally; calling stopAudition here would fade down
+  // the master gain right as the audition starts).
+  useEffect(() => {
+    const onPriority = () => {
+      if (sequencePlaying) {
+        sequenceAbort.current = true;
+        setSequencePlaying(false);
+        setSequenceNodeId(null);
+        setSequenceNodeType(null);
+        setSequenceNodeIndex(0);
+        setSequenceTotalNodes(0);
+      }
+    };
+    window.addEventListener("audition-priority-play", onPriority);
+    return () => window.removeEventListener("audition-priority-play", onPriority);
+  }, [sequencePlaying]);
+
   // Play from a specific node: if sequence running, rewind there; otherwise start sequence from that node
   const handlePlayFromNode = useCallback((nodeId: string) => {
     if (sequencePlaying) {
