@@ -616,7 +616,7 @@ export function Landing() {
       <section id="waitlist" className="py-24 px-6 border-t border-canvas-accent/20">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-canvas-highlight mb-3">Early Access</p>
-          <h2 className="text-3xl md:text-4xl font-black mb-4">Get in before it hits middleware.</h2>
+          <h2 className="text-3xl md:text-4xl font-black mb-4">Get in while we're still listening.</h2>
           <p className="text-sm text-canvas-muted mb-8 leading-relaxed">
             Score Canvas is in active development. Drop your email and you'll be the first to know when new things ship — Wwise Sync, Segue, bulk import, and the rest of the roadmap.
           </p>
