@@ -21,9 +21,12 @@ interface TopBarProps {
   onSignOut: () => Promise<void> | void;
   onSave: () => Promise<void> | void;
   onFork: () => Promise<void> | void;
+  onShare: () => void;
   savingState: "idle" | "saving" | "error";
   savedAt: Date | null;
   isUserProject: boolean;
+  /** True when viewing a shared link — hide Save / Share / Fork affordances */
+  readOnly?: boolean;
   configured: boolean;
 }
 
@@ -61,9 +64,11 @@ export function TopBar({
   onSignOut,
   onSave,
   onFork,
+  onShare,
   savingState,
   savedAt,
   isUserProject,
+  readOnly = false,
   configured,
 }: TopBarProps) {
   const { mode } = useViewMode();
@@ -111,22 +116,33 @@ export function TopBar({
           Status
         </button>
 
-        {/* Save / Fork / saving state */}
-        {isUserProject ? (
-          <button
-            onClick={onSave}
-            disabled={savingState === "saving"}
-            title="Save this project"
-            className={`px-2.5 py-1 text-[11px] font-semibold rounded border transition-colors flex items-center gap-1.5 ${
-              savingState === "error"
-                ? "bg-red-900/40 text-red-300 border-red-500/50"
-                : "bg-canvas-highlight/80 text-white border-canvas-highlight hover:bg-canvas-highlight disabled:opacity-60"
-            }`}
-          >
-            {savingState === "saving" && <span className="inline-block w-3 h-3 rounded-full border-2 border-white/40 border-t-white animate-spin" />}
-            {savingState === "saving" ? "Saving..." : savingState === "error" ? "Retry save" : "Save"}
-          </button>
-        ) : (
+        {/* Save / Share / Fork — hidden when viewing a read-only shared link */}
+        {!readOnly && isUserProject && (
+          <>
+            <button
+              onClick={onSave}
+              disabled={savingState === "saving"}
+              title="Save this project"
+              className={`px-2.5 py-1 text-[11px] font-semibold rounded border transition-colors flex items-center gap-1.5 ${
+                savingState === "error"
+                  ? "bg-red-900/40 text-red-300 border-red-500/50"
+                  : "bg-canvas-highlight/80 text-white border-canvas-highlight hover:bg-canvas-highlight disabled:opacity-60"
+              }`}
+            >
+              {savingState === "saving" && <span className="inline-block w-3 h-3 rounded-full border-2 border-white/40 border-t-white animate-spin" />}
+              {savingState === "saving" ? "Saving..." : savingState === "error" ? "Retry save" : "Save"}
+            </button>
+            <button
+              onClick={onShare}
+              title="Share a read-only link to this project"
+              className="px-2.5 py-1 text-[11px] font-semibold rounded bg-canvas-accent/60 text-canvas-text border border-canvas-accent hover:bg-canvas-accent transition-colors flex items-center gap-1.5"
+            >
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 8h6M11 8l-3-3M11 8l-3 3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Share
+            </button>
+          </>
+        )}
+        {!readOnly && !isUserProject && (
           <button
             onClick={onFork}
             title="Fork this demo into your own editable project"
@@ -135,8 +151,17 @@ export function TopBar({
             <span className="text-[10px]">⑂</span> Fork to my projects
           </button>
         )}
+        {readOnly && (
+          <button
+            onClick={onFork}
+            title="Fork this shared project into your own editable copy"
+            className="px-2.5 py-1 text-[11px] font-semibold rounded bg-purple-900/30 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30 transition-colors flex items-center gap-1"
+          >
+            <span className="text-[10px]">⑂</span> Fork this
+          </button>
+        )}
 
-        {savedAt && savingState === "idle" && (
+        {!readOnly && savedAt && savingState === "idle" && (
           <span className="text-[10px] text-canvas-muted/70 font-mono">saved {savedRelative}</span>
         )}
       </div>

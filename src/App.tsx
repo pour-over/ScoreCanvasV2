@@ -21,6 +21,8 @@ import { stopAudition } from "./audio/synth";
 import { projects as demoProjects } from "./data/projects";
 import type { GameProject, GameLevel } from "./data/projects";
 import { saveProject, loadProject, listMyProjects, forkProject, type ProjectSummary } from "./lib/projects";
+import { resolveShareToken } from "./lib/share";
+import { ShareModal } from "./components/ShareModal";
 import "./App.css";
 
 // ─── Hash routing helpers ──────────────────────────────────────────────────
@@ -30,6 +32,16 @@ function parseHash(): { route: "landing" | "app"; projectId: string | null } {
   if (!h.startsWith("#app")) return { route: "landing", projectId: null };
   const m = h.match(/^#app\/p\/([0-9a-f-]{36})/i);
   return { route: "app", projectId: m ? m[1] : null };
+}
+
+/** Read a `?share={token}` query param. Presence forces read-only app view. */
+function getShareToken(): string | null {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("share");
+  } catch {
+    return null;
+  }
 }
 
 function ScoreCanvasApp() {
@@ -44,6 +56,8 @@ function ScoreCanvasApp() {
   const [savedProjectId, setSavedProjectId] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
   const [savingState, setSavingState] = useState<"idle" | "saving" | "error">("idle");
+  const [isReadOnly, setIsReadOnly] = useState(false);
+  const [showShare, setShowShare] = useState(false);
 
   const [selectedLevelId, setSelectedLevelId] = useState(currentProject.levels[0].id);
   const currentLevel = currentProject.levels.find((l) => l.id === selectedLevelId) ?? currentProject.levels[0];
@@ -105,8 +119,32 @@ function ScoreCanvasApp() {
     }
   }, []);
 
+  // ─── Share-token detection: ?share={token} → load read-only ───────────
+  // Runs once on mount. If present, takes precedence over hash routing.
+  useEffect(() => {
+    const token = getShareToken();
+    if (!token) return;
+    let cancelled = false;
+    (async () => {
+      const projectId = await resolveShareToken(token);
+      if (!projectId || cancelled) return;
+      const p = await loadProject(projectId);
+      if (!p || cancelled) return;
+      stopAudition();
+      setCurrentProject(p);
+      setIsUserProject(true);
+      setIsReadOnly(true);
+      setSavedProjectId(p.id);
+      setSavedAt(null);
+      setSelectedLevelId(p.levels[0]?.id ?? "");
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   // ─── Hash routing → load project if `#app/p/{id}` ──────────────────────
   useEffect(() => {
+    // Don't fight the share-token loader on the same mount
+    if (getShareToken()) return;
     const { projectId } = parseHash();
     if (!projectId) return;
     let cancelled = false;
@@ -229,6 +267,21 @@ function ScoreCanvasApp() {
   return (
     <ViewModeProvider>
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-canvas-bg">
+      {/* Read-only banner shown to anonymous viewers of a shared project */}
+      {isReadOnly && (
+        <div className="bg-canvas-highlight/15 border-b border-canvas-highlight/40 px-4 py-1.5 flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-canvas-highlight">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a3 3 0 00-3 3v3H4a1 1 0 00-1 1v6a1 1 0 001 1h8a1 1 0 001-1V8a1 1 0 00-1-1h-1V4a3 3 0 00-3-3zm-2 6V4a2 2 0 014 0v3H6z"/></svg>
+            <span>Read-only · viewing a shared Score Canvas project</span>
+          </div>
+          <a
+            href="/"
+            className="ml-auto text-[10px] font-mono text-canvas-muted hover:text-canvas-highlight transition-colors"
+          >
+            Build your own at scorecanvas.io →
+          </a>
+        </div>
+      )}
       <TopBar
         projectName={currentProject.name}
         levelName={currentLevel?.name ?? ""}
@@ -247,9 +300,11 @@ function ScoreCanvasApp() {
         onSignOut={signOut}
         onSave={handleSave}
         onFork={handleForkCurrent}
+        onShare={() => setShowShare(true)}
         savingState={savingState}
         savedAt={savedAt}
         isUserProject={isUserProject}
+        readOnly={isReadOnly}
         configured={configured}
       />
       <div className="flex flex-1 overflow-hidden">
@@ -266,12 +321,14 @@ function ScoreCanvasApp() {
           onOpenUserProject={handleOpenUserProject}
           isSignedIn={!!user}
           onForkCurrent={handleForkCurrent}
+          readOnly={isReadOnly}
         />
         <ReactFlowProvider>
           <Canvas
             level={currentLevel}
             projectId={currentProject.id}
-            onLevelEdit={isUserProject ? handleLevelEdit : undefined}
+            onLevelEdit={isUserProject && !isReadOnly ? handleLevelEdit : undefined}
+            readOnly={isReadOnly}
           />
         </ReactFlowProvider>
       </div>
@@ -305,6 +362,13 @@ function ScoreCanvasApp() {
       {showAuth && (
         <AuthModal reason={authReason ?? undefined} onClose={() => setShowAuth(false)} />
       )}
+      {showShare && savedProjectId && (
+        <ShareModal
+          projectId={savedProjectId}
+          projectName={currentProject.name}
+          onClose={() => setShowShare(false)}
+        />
+      )}
       {/* Waitlist CTA — fixed bottom-left */}
       <a
         href="#waitlist"
@@ -319,10 +383,18 @@ function ScoreCanvasApp() {
 }
 
 export default function App() {
-  const [view, setView] = useState<"landing" | "app">(() => parseHash().route);
+  // ?share={token} on any URL forces the app view (read-only). Otherwise the
+  // hash decides — #app shows the tool, anything else shows the landing.
+  const [view, setView] = useState<"landing" | "app">(() => {
+    if (getShareToken()) return "app";
+    return parseHash().route;
+  });
 
   useEffect(() => {
-    const onHashChange = () => setView(parseHash().route);
+    const onHashChange = () => {
+      if (getShareToken()) { setView("app"); return; }
+      setView(parseHash().route);
+    };
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);

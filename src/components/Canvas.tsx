@@ -108,9 +108,14 @@ interface CanvasProps {
    * Demo projects pass nothing here — they're effectively read-only.
    */
   onLevelEdit?: (levelId: string, nodes: Node[], edges: Edge[]) => void;
+  /**
+   * True when the user is viewing a shared read-only link. Disables node
+   * dragging, edge connect/delete, and the right-click edge menu.
+   */
+  readOnly?: boolean;
 }
 
-export function Canvas({ level, projectId, onLevelEdit }: CanvasProps) {
+export function Canvas({ level, projectId, onLevelEdit, readOnly = false }: CanvasProps) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState(level.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(level.edges);
@@ -649,18 +654,22 @@ export function Canvas({ level, projectId, onLevelEdit }: CanvasProps) {
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onDrop={onDrop}
-        onDragOver={onDragOver}
-        onEdgeContextMenu={onEdgeContextMenu}
+        onNodesChange={readOnly ? undefined : onNodesChange}
+        onEdgesChange={readOnly ? undefined : onEdgesChange}
+        onConnect={readOnly ? undefined : onConnect}
+        onDrop={readOnly ? undefined : onDrop}
+        onDragOver={readOnly ? undefined : onDragOver}
+        onEdgeContextMenu={readOnly ? undefined : onEdgeContextMenu}
         onNodeDoubleClick={onNodeDoubleClick}
+        nodesDraggable={!readOnly}
+        nodesConnectable={!readOnly}
+        elementsSelectable
+        edgesReconnectable={!readOnly}
         nodeTypes={nodeTypes}
         fitView
         fitViewOptions={{ padding: 0.15 }}
         defaultEdgeOptions={{ animated: true, style: { stroke: "#3a3a5c", strokeWidth: 2 } }}
-        selectionOnDrag
+        selectionOnDrag={!readOnly}
         selectionMode={SelectionMode.Partial}
         panOnDrag={[1, 2]}
         className="bg-canvas-bg"

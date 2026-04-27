@@ -25,6 +25,8 @@ interface SidebarProps {
   onOpenUserProject?: (id: string) => void;
   isSignedIn?: boolean;
   onForkCurrent?: () => void;
+  /** Hide write affordances when viewing a shared read-only link. */
+  readOnly?: boolean;
 }
 
 function CollapsibleSection({ title, defaultOpen = true, count, children }: {
@@ -82,6 +84,7 @@ export function Sidebar({
   onOpenUserProject,
   isSignedIn = false,
   onForkCurrent,
+  readOnly = false,
 }: SidebarProps) {
   const [showAllAssets, setShowAllAssets] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -118,40 +121,42 @@ export function Sidebar({
       <div className="px-2 pt-2 pb-1" ref={dropdownRef}>
         <div className="relative">
           <button
-            onClick={() => { if (!locked) setDropdownOpen(!dropdownOpen); }}
+            onClick={() => { if (!locked && !readOnly) setDropdownOpen(!dropdownOpen); }}
             className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md border transition-colors text-left ${
-              locked
+              locked || readOnly
                 ? "bg-canvas-accent/10 border-canvas-accent/50 cursor-default"
                 : "bg-canvas-bg border-canvas-accent hover:border-canvas-highlight/40"
             }`}
-            title={locked ? "Project locked — click the lock icon to unlock" : "Switch project"}
+            title={readOnly ? "Shared link — viewing only" : locked ? "Project locked — click the lock icon to unlock" : "Switch project"}
           >
             <div className="flex-1 min-w-0">
               <div className="text-[10px] font-bold text-canvas-text truncate">{shortName(selectedProject)}</div>
               <div className="text-[8px] text-canvas-muted/60 truncate italic">{selectedProject.subtitle}</div>
             </div>
-            {!locked && (
+            {!locked && !readOnly && (
               <svg width="8" height="5" viewBox="0 0 8 5" fill="currentColor" className={`text-canvas-muted/50 shrink-0 transition-transform ${dropdownOpen ? "rotate-180" : ""}`}>
                 <polygon points="0,0 8,0 4,5" />
               </svg>
             )}
           </button>
 
-          {/* Lock button */}
-          <button
-            onClick={() => { setLocked(!locked); setDropdownOpen(false); }}
-            className={`absolute -right-0.5 -top-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[7px] border transition-all ${
-              locked
-                ? "bg-amber-600/30 border-amber-500/50 text-amber-400"
-                : "bg-canvas-bg border-canvas-accent/50 text-canvas-muted/40 hover:text-canvas-muted hover:border-canvas-accent"
-            }`}
-            title={locked ? "Unlock project switching" : "Lock to this project (for single-game teams)"}
-          >
-            {locked ? "🔒" : "🔓"}
-          </button>
+          {/* Lock button — hidden in read-only */}
+          {!readOnly && (
+            <button
+              onClick={() => { setLocked(!locked); setDropdownOpen(false); }}
+              className={`absolute -right-0.5 -top-0.5 w-4 h-4 rounded-full flex items-center justify-center text-[7px] border transition-all ${
+                locked
+                  ? "bg-amber-600/30 border-amber-500/50 text-amber-400"
+                  : "bg-canvas-bg border-canvas-accent/50 text-canvas-muted/40 hover:text-canvas-muted hover:border-canvas-accent"
+              }`}
+              title={locked ? "Unlock project switching" : "Lock to this project (for single-game teams)"}
+            >
+              {locked ? "🔒" : "🔓"}
+            </button>
+          )}
 
           {/* Dropdown menu */}
-          {dropdownOpen && !locked && (
+          {dropdownOpen && !locked && !readOnly && (
             <div className="absolute top-full left-0 right-0 mt-1 bg-[#0d0d1a] border border-canvas-accent rounded-md shadow-xl z-50 max-h-64 overflow-y-auto">
               {projects.map((proj) => (
                 <button
@@ -193,8 +198,8 @@ export function Sidebar({
 
       {/* Scrollable content area */}
       <div className="flex-1 overflow-y-auto scrollbar-thin">
-        {/* My Projects — only when persistence is wired up */}
-        {(isSignedIn || myProjects.length > 0) && (
+        {/* My Projects — only when persistence is wired up; hidden in shared read-only view */}
+        {!readOnly && (isSignedIn || myProjects.length > 0) && (
           <>
             <CollapsibleSection title="My Projects" count={myProjects.length}>
               {myProjects.length === 0 ? (
@@ -246,34 +251,40 @@ export function Sidebar({
         {/* Levels */}
         <CollapsibleSection title="Levels" count={levels.length}>
           <LevelBrowser levels={levels} selectedId={selectedLevelId} onSelect={onSelectLevel} />
-          <button
-            onClick={() => window.dispatchEvent(new CustomEvent("open-import", { detail: { mode: "level" } }))}
-            className="mt-2 w-full px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider rounded border border-dashed border-canvas-accent text-canvas-muted hover:text-amber-300 hover:border-amber-500/50 transition-colors flex items-center justify-center gap-1.5"
-            title="Add a new level — bulk CSV/JSON import coming v2.5"
-          >
-            <span className="text-amber-400">+</span> New Level
-            <span className="text-[8px] font-mono bg-amber-500/20 text-amber-300 rounded px-1 ml-1">SOON</span>
-          </button>
+          {!readOnly && (
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent("open-import", { detail: { mode: "level" } }))}
+              className="mt-2 w-full px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider rounded border border-dashed border-canvas-accent text-canvas-muted hover:text-amber-300 hover:border-amber-500/50 transition-colors flex items-center justify-center gap-1.5"
+              title="Add a new level — bulk CSV/JSON import coming v2.5"
+            >
+              <span className="text-amber-400">+</span> New Level
+              <span className="text-[8px] font-mono bg-amber-500/20 text-amber-300 rounded px-1 ml-1">SOON</span>
+            </button>
+          )}
         </CollapsibleSection>
 
-        <div className="mx-3 border-t border-canvas-accent" />
+        {!readOnly && (
+          <>
+            <div className="mx-3 border-t border-canvas-accent" />
 
-        {/* Node Palette */}
-        <CollapsibleSection title="Add Nodes" defaultOpen={false} count={nodeTemplates.length}>
-          <div className="grid grid-cols-2 gap-1.5">
-            {nodeTemplates.map((tpl) => (
-              <div
-                key={tpl.type}
-                className="bg-canvas-bg border border-canvas-accent rounded px-2 py-1.5 cursor-grab active:cursor-grabbing hover:border-canvas-highlight/50 transition-colors"
-                draggable
-                onDragStart={(e) => onDragStart(e, tpl.type)}
-              >
-                <div className="text-[10px] font-medium text-canvas-text">{tpl.label}</div>
-                <div className="text-[9px] text-canvas-muted leading-tight">{tpl.description}</div>
+            {/* Node Palette */}
+            <CollapsibleSection title="Add Nodes" defaultOpen={false} count={nodeTemplates.length}>
+              <div className="grid grid-cols-2 gap-1.5">
+                {nodeTemplates.map((tpl) => (
+                  <div
+                    key={tpl.type}
+                    className="bg-canvas-bg border border-canvas-accent rounded px-2 py-1.5 cursor-grab active:cursor-grabbing hover:border-canvas-highlight/50 transition-colors"
+                    draggable
+                    onDragStart={(e) => onDragStart(e, tpl.type)}
+                  >
+                    <div className="text-[10px] font-medium text-canvas-text">{tpl.label}</div>
+                    <div className="text-[9px] text-canvas-muted leading-tight">{tpl.description}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </CollapsibleSection>
+            </CollapsibleSection>
+          </>
+        )}
 
         <div className="mx-3 border-t border-canvas-accent" />
 
