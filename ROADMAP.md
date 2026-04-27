@@ -71,7 +71,7 @@ Same tool, adapted for linear score review. Film score adaptive music isn't a gr
 **Tech**: Suno API via Kie.ai, stem-aware from day 1.
 **Role**: Generates stem variations, custom intros, custom endings, custom transitions. Splits stems. Analyzes and tags.
 
-Segue is the **X→Y music solver** — the productized version of Ted's 20 years of editorial expertise. It makes "clean theme in, entire score out" real.
+Segue is a **music variation and transition machine** — the productized version of Ted's 20 years of editorial expertise as the **X→Y music solver**. One cue in; variations, extensions, custom intros and endings, and real transitions out. Augments composers, doesn't replace them.
 
 Segue is cross-cutting:
 - **Core** uses it for asset generation inside the design tool.

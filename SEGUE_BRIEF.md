@@ -8,7 +8,7 @@ SEGUE (*seg-way*, n. a smooth transition from one piece of music to another) is 
 
 It's the AI backend to a node-based game audio design tool called **Score Canvas** (already live at scorecanvas.io). Score Canvas handles the system design and auditioning. SEGUE handles the generation.
 
-**The pitch:** You provide a clean theme. You get an entire score. Any genre. Any direction. Instantly.
+**The pitch:** A music variation and transition machine. Bring one cue from your project — Segue generates variations, extensions, custom intros, custom endings, and real X→Y transitions to other cues. Same key, same tempo, same vibe by default; any direction you ask for. Instrumental, always. Designed to augment composers, not replace them.
 
 ## Who built it + why
 

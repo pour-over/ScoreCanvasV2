@@ -372,9 +372,9 @@ export function Landing() {
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-10">
             <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-purple-300 mb-3">Hear It</p>
-            <h2 className="text-3xl md:text-4xl font-black mb-3">One source theme.<br/><span className="bg-gradient-to-r from-purple-300 to-cyan-300 bg-clip-text text-transparent">A whole score's worth of variations.</span></h2>
+            <h2 className="text-3xl md:text-4xl font-black mb-3">One cue in.<br/><span className="bg-gradient-to-r from-purple-300 to-cyan-300 bg-clip-text text-transparent">Variations, transitions, intros, endings out.</span></h2>
             <p className="text-sm text-canvas-muted max-w-xl mx-auto leading-relaxed">
-              Press play on the source theme at the top. Then play any of the variations, level themes, stingers, or cinematic cues underneath. Every track below is the kind of variety Segue is being designed to generate from a single source.
+              Press play on the source cue at the top. Then play any of the variations, level themes, stingers, intros, or transitions underneath. Each one is the kind of output Segue is being designed to generate from a single starting cue.
             </p>
           </div>
           <div className="bg-[#0d0d1a]/80 border border-purple-500/30 rounded-2xl p-5 md:p-6">
@@ -403,12 +403,12 @@ export function Landing() {
               <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-300">Coming v2.5</span>
             </div>
 
-            <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-purple-300/80 mb-2">SEGUE · AI Stem Generation</div>
+            <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-purple-300/80 mb-2">SEGUE · Variation &amp; Transition Machine</div>
             <h3 className="text-2xl md:text-3xl font-black mb-3 leading-tight max-w-xl">
-              <span className="bg-gradient-to-r from-purple-300 to-cyan-300 bg-clip-text text-transparent">A clean theme in.</span> An entire score out.
+              <span className="bg-gradient-to-r from-purple-300 to-cyan-300 bg-clip-text text-transparent">A music variation</span> and transition machine.
             </h3>
             <p className="text-sm text-canvas-muted leading-relaxed mb-4 max-w-2xl">
-              Every adaptive music system is really one question asked a hundred times: <span className="text-canvas-text font-semibold">"How do I get from X music to Y music — cleanly?"</span> SEGUE answers it — AI-generated stem variations, custom intros, custom endings, and actual musical transitions. Instrumental, always.
+              Take any cue from your project. Generate variations, extend it, build a matched intro or ending, or write a real X→Y bridge to another cue. Every adaptive music system is just this question asked a hundred times — <span className="text-canvas-text font-semibold">"how do I get from X music to Y music, cleanly?"</span> SEGUE is the tool that answers it. Instrumental, always.
             </p>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-5">

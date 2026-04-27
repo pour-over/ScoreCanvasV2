@@ -28,8 +28,8 @@ const TRACKS: DemoTrack[] = [
   {
     id: "src",
     file: "segue-demo/source_theme.mp3",
-    label: "Source Theme",
-    desc: "The clean theme. Single composition. Everything below is what Segue is being designed to do with it.",
+    label: "Source Cue",
+    desc: "One cue from a project. Everything below is the kind of variation, transition, intro, ending, or extension Segue is being designed to generate from it.",
     kind: "source",
   },
   {

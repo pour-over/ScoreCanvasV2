@@ -1,9 +1,10 @@
 /**
- * SeguePanel — roadmap teaser for the AI stem generation feature.
+ * SeguePanel — roadmap teaser for the AI music variation + transition feature.
  *
- * The pitch: "You provide a clean theme. You get an entire score."
- * AI-generated stem variations, intros, endings, transitions — any genre,
- * instantly, for style ideation. Powered by Suno via Kie.ai (planned).
+ * The pitch: a music variation and transition machine. Take any cue from
+ * your project — generate variations, extensions, custom intros/endings,
+ * or real X→Y transitions to another cue. Instrumental, always.
+ * Powered by Suno V5 via Kie.ai.
  */
 
 import { SegueDemoGallery } from "./SegueDemoGallery";
@@ -54,18 +55,18 @@ export function SeguePanel({ onClose }: SeguePanelProps) {
             <div className="text-[11px] font-mono uppercase tracking-[0.2em] text-purple-300/80 mb-2">The Pitch</div>
             <div className="flex items-center gap-4">
               <div className="flex-1">
-                <div className="text-[11px] font-mono text-canvas-muted mb-1">You provide:</div>
-                <div className="text-sm font-bold text-canvas-text">A clean theme.</div>
+                <div className="text-[11px] font-mono text-canvas-muted mb-1">You bring:</div>
+                <div className="text-sm font-bold text-canvas-text">One cue.</div>
               </div>
               <div className="text-2xl text-purple-400">→</div>
               <div className="flex-1">
-                <div className="text-[11px] font-mono text-canvas-muted mb-1">You get:</div>
-                <div className="text-sm font-bold text-canvas-text">An entire score.</div>
-                <div className="text-[11px] text-canvas-muted mt-0.5">Any genre. Instantly.</div>
+                <div className="text-[11px] font-mono text-canvas-muted mb-1">SEGUE generates:</div>
+                <div className="text-sm font-bold text-canvas-text">Variations, extensions, intros, endings, transitions.</div>
+                <div className="text-[11px] text-canvas-muted mt-0.5">Same key. Same BPM. Same vibe — or any direction you ask for.</div>
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-purple-500/20 text-[12px] text-purple-200/80 leading-relaxed italic">
-              The most bang-for-buck music tool that exists — purpose-built for style ideation, rapid prototyping, and killing the "we don't know what we want yet" meeting.
+              A purpose-built music variation and transition machine. Augments composers, doesn't replace them.
             </div>
           </div>
 
