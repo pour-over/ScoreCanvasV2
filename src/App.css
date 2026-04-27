@@ -1,3 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ─── Theme system ────────────────────────────────────────────────────────
+ * Default RGB triplets for the canvas-* color tokens. ThemeContext overrides
+ * these via inline style on <html> based on the selected theme. Tailwind's
+ * canvas-bg / canvas-surface / canvas-accent / canvas-highlight / canvas-text /
+ * canvas-muted utilities all read these as `rgb(var(--c-x) / <alpha-value>)`,
+ * so opacity modifiers like bg-canvas-bg/80 keep working.
+ *
+ * Themes are picked from the dropdown in the top bar.
+ */
+:root {
+  --c-bg: 26 26 46;
+  --c-surface: 22 33 62;
+  --c-accent: 15 52 96;
+  --c-highlight: 78 205 196;
+  --c-text: 234 234 234;
+  --c-muted: 136 146 164;
+  --c-accent-alt: 168 85 247;
+}

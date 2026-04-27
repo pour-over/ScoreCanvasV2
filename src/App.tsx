@@ -14,6 +14,7 @@ import { GenerationModal, type GenerationRequestEvent } from "./components/Gener
 import { DataImportPanel } from "./components/DataImportPanel";
 import { AuthModal } from "./components/AuthModal";
 import { ViewModeProvider } from "./context/ViewModeContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import { Landing } from "./components/Landing";
 import { stopAudition } from "./audio/synth";
@@ -327,8 +328,10 @@ export default function App() {
   }, []);
 
   return (
-    <AuthProvider>
-      {view === "app" ? <ScoreCanvasApp /> : <Landing />}
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        {view === "app" ? <ScoreCanvasApp /> : <Landing />}
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

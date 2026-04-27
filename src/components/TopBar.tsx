@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useViewMode } from "../context/ViewModeContext";
+import { ThemePicker } from "./ThemePicker";
 
 interface TopBarProps {
   projectName: string;
@@ -210,6 +211,11 @@ export function TopBar({
       >
         Export
       </button>
+
+      <div className="w-px h-5 bg-canvas-accent flex-shrink-0" />
+
+      {/* Theme picker */}
+      <ThemePicker />
 
       <div className="w-px h-5 bg-canvas-accent flex-shrink-0" />
 
