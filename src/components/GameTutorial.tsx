@@ -122,7 +122,7 @@ const STEPS: Step[] = [
     id: "email",
     title: "Stay in the loop.",
     narrator: "Early Access",
-    body: "Score Canvas is in active development. Drop your email to get early access to Wwise Live Sync (at cost, for the first cohort) and a heads-up when new projects ship. Then you can start exploring.",
+    body: "Score Canvas is in active development. Drop your email and you'll be the first to know when Wwise Sync, Segue, and the rest of the roadmap ship. Then you can start exploring.",
     waitFor: "email",
     cardPosition: "center",
   },

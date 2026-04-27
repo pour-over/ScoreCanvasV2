@@ -464,7 +464,7 @@ export function Landing() {
 
           <div className="mt-8 text-center">
             <p className="text-[11px] text-canvas-muted/60">
-              First cohort gets both features <span className="text-canvas-highlight font-semibold">at cost</span> when they ship. <a href="#waitlist" className="text-canvas-highlight hover:underline">Join the waitlist →</a>
+              Both shipping next. <a href="#waitlist" className="text-canvas-highlight hover:underline">Get notified →</a>
             </p>
           </div>
         </div>
@@ -618,7 +618,7 @@ export function Landing() {
           <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-canvas-highlight mb-3">Early Access</p>
           <h2 className="text-3xl md:text-4xl font-black mb-4">Get in before it hits middleware.</h2>
           <p className="text-sm text-canvas-muted mb-8 leading-relaxed">
-            Score Canvas is in active development. The first cohort gets early access, deep input on the roadmap, and Wwise Sync at cost.
+            Score Canvas is in active development. Drop your email and you'll be the first to know when new things ship — Wwise Sync, Segue, bulk import, and the rest of the roadmap.
           </p>
 
           {submitted ? (

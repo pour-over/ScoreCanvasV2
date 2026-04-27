@@ -73,7 +73,7 @@ export function WwiseSyncPanel({ onClose }: WwiseSyncPanelProps) {
           {/* CTA */}
           <div className="bg-canvas-highlight/10 border border-canvas-highlight/30 rounded-lg p-4 text-center">
             <div className="text-[11px] text-canvas-text mb-2">
-              First cohort gets Wwise Sync <span className="font-bold text-canvas-highlight">at cost</span> when it ships.
+              Get notified when Wwise Sync ships.
             </div>
             <a
               href="/#waitlist"

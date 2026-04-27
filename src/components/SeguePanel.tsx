@@ -141,7 +141,7 @@ export function SeguePanel({ onClose }: SeguePanelProps) {
               <div className="text-[10px] font-mono uppercase tracking-wider text-canvas-muted">style variations</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-black text-purple-300 mb-1">$0</div>
+              <div className="text-2xl font-black text-purple-300 mb-1">∅</div>
               <div className="text-[10px] font-mono uppercase tracking-wider text-canvas-muted">extra composer time</div>
             </div>
           </div>
@@ -149,7 +149,7 @@ export function SeguePanel({ onClose }: SeguePanelProps) {
           {/* CTA */}
           <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4 text-center">
             <div className="text-[12px] text-canvas-text mb-2">
-              First cohort gets SEGUE <span className="font-bold text-purple-300">at cost</span> when it ships.
+              Get notified when SEGUE ships.
             </div>
             <a
               href="/#waitlist"

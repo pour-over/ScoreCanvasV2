@@ -144,7 +144,7 @@ export function DataImportPanel({ mode, onClose }: DataImportPanelProps) {
           {/* CTA */}
           <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 text-center">
             <div className="text-[12px] text-canvas-text mb-2">
-              First cohort gets bulk import <span className="font-bold text-amber-300">at cost</span> when it ships.
+              Get notified when bulk import ships.
             </div>
             <a
               href="/#waitlist"

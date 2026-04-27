@@ -107,11 +107,89 @@ export async function loadWaveformPeaks(audioFile: string, buckets = 96): Promis
   return peaks;
 }
 
+// ─── First-sound detection (skip dead air at file start) ────────────────────
+// Many of the demo MP3s start with 3–10s of silence or sub-audible fade-in.
+// findFirstSoundSec scans the file and returns the timestamp where real audio
+// begins, so playback can start there instead of through the silence.
+
+const firstSoundCache = new Map<string, number>();
+
+/**
+ * Locate the first window of "real" audio in a file (window peak ≥ 5% of the
+ * file's max peak), back off by 50ms padding to preserve attack transients,
+ * and return the timestamp in seconds. Cached per file. Returns 0 if the file
+ * can't load or starts at full volume.
+ */
+export async function findFirstSoundSec(audioFile: string, opts?: {
+  thresholdRel?: number;
+  windowMs?: number;
+  paddingMs?: number;
+}): Promise<number> {
+  if (firstSoundCache.has(audioFile)) return firstSoundCache.get(audioFile)!;
+  const url = `/audio/${audioFile}`;
+  const buf = await loadAudioBuffer(url);
+  if (!buf) return 0;
+
+  const sampleRate = buf.sampleRate;
+  const totalSamples = buf.length;
+  const channelData: Float32Array[] = [];
+  for (let c = 0; c < buf.numberOfChannels; c++) channelData.push(buf.getChannelData(c));
+  const channelCount = channelData.length;
+
+  // Pass 1: find the global max peak (mono-mixed) so the threshold is relative.
+  let globalMax = 0;
+  for (let i = 0; i < totalSamples; i++) {
+    let s = 0;
+    for (let c = 0; c < channelCount; c++) s += channelData[c][i];
+    const v = Math.abs(s / channelCount);
+    if (v > globalMax) globalMax = v;
+  }
+  if (globalMax === 0) {
+    firstSoundCache.set(audioFile, 0);
+    return 0;
+  }
+
+  const thresholdRel = opts?.thresholdRel ?? 0.05;          // 5% of peak (~–26 dB)
+  const windowMs = opts?.windowMs ?? 50;
+  const paddingMs = opts?.paddingMs ?? 50;
+  const threshold = globalMax * thresholdRel;
+  const windowSamples = Math.max(1, Math.floor((sampleRate * windowMs) / 1000));
+
+  // Pass 2: walk windows, find first whose peak crosses threshold.
+  for (let i = 0; i + windowSamples <= totalSamples; i += windowSamples) {
+    let windowPeak = 0;
+    for (let j = i; j < i + windowSamples; j++) {
+      let s = 0;
+      for (let c = 0; c < channelCount; c++) s += channelData[c][j];
+      const v = Math.abs(s / channelCount);
+      if (v > windowPeak) {
+        windowPeak = v;
+        if (windowPeak >= threshold) break; // early-exit window
+      }
+    }
+    if (windowPeak >= threshold) {
+      const sec = i / sampleRate;
+      const padded = Math.max(0, sec - paddingMs / 1000);
+      firstSoundCache.set(audioFile, padded);
+      return padded;
+    }
+  }
+
+  firstSoundCache.set(audioFile, 0);
+  return 0;
+}
+
 interface FilePlaybackOptions {
   /** "full" plays entire file; "transition" plays first 10s + last 10s with fades */
   mode?: "full" | "transition";
   /** Semitones to pitch-shift (uses playbackRate) */
   pitchShift?: number;
+  /**
+   * Skip into the file by this many seconds before starting playback.
+   * Used to skip dead air at file start. Only applies in "full" mode —
+   * Transition Check ignores this so the start-of-file is always audible.
+   */
+  startOffsetSec?: number;
 }
 
 async function playAudioFile(
@@ -174,15 +252,22 @@ async function playAudioFile(
 
     return (firstDur + gapDur + lastDur) * 1000;
   } else {
-    // Full playback with matching fade in/out
+    // Full playback with matching fade in/out — honor startOffsetSec to
+    // skip dead air at file start. Reported duration is the *audible*
+    // duration, so polling code knows when audio actually ends.
+    const rawOffset = Math.max(0, opts.startOffsetSec ?? 0);
+    // Don't skip past the end. If offset is too large, fall back to 0.
+    const offsetSec = rawOffset < buffer.duration - 1 ? rawOffset : 0;
+    const playableDur = buffer.duration - offsetSec;
+
     fileGain.gain.setValueAtTime(0, now);
-    fileGain.gain.linearRampToValueAtTime(1, now + Math.min(fadeIn, buffer.duration * 0.1));
-    if (buffer.duration > fadeOut) {
-      fileGain.gain.setValueAtTime(1, now + buffer.duration - fadeOut);
-      fileGain.gain.linearRampToValueAtTime(0, now + buffer.duration);
+    fileGain.gain.linearRampToValueAtTime(1, now + Math.min(fadeIn, playableDur * 0.1));
+    if (playableDur > fadeOut) {
+      fileGain.gain.setValueAtTime(1, now + playableDur - fadeOut);
+      fileGain.gain.linearRampToValueAtTime(0, now + playableDur);
     }
-    source.start(now);
-    return buffer.duration * 1000;
+    source.start(now, offsetSec);
+    return playableDur * 1000;
   }
 }
 
@@ -200,6 +285,13 @@ export interface AuditionParams {
   playbackMode?: "full" | "transition";
   /** Semitones to pitch-shift (positive = up, negative = down) */
   pitchShift?: number;
+  /**
+   * Skip into the file by this many seconds before playback starts.
+   * Default: auto-detect via findFirstSoundSec to skip dead air.
+   * Pass 0 to force playback from the very beginning.
+   * Ignored when playbackMode is "transition".
+   */
+  startOffsetSec?: number;
 }
 
 /** Stop with a smooth 3.5s fadeout */
@@ -290,9 +382,19 @@ export async function auditionAsset(params: AuditionParams): Promise<number> {
   // Stingers get +3 semitones pitch shift by default (shakuhachi flute)
   const pitchShift = params.pitchShift ?? (params.category === "stinger" ? 3 : 0);
 
+  // Auto-skip dead air at file start when playing in "full" mode.
+  // Caller can pass startOffsetSec: 0 explicitly to force from-beginning.
+  // Transition mode ignores this — it always wants the literal start.
+  const playbackMode = params.playbackMode ?? "full";
+  let startOffsetSec = params.startOffsetSec;
+  if (startOffsetSec === undefined && playbackMode === "full") {
+    startOffsetSec = await findFirstSoundSec(params.audioFile);
+  }
+
   const durationMs = await playAudioFile(params.audioFile, {
-    mode: params.playbackMode ?? "full",
+    mode: playbackMode,
     pitchShift,
+    startOffsetSec,
   });
 
   if (durationMs !== null) {
