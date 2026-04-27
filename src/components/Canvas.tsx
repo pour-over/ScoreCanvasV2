@@ -1,6 +1,6 @@
 import { useCallback, useRef, useEffect, useState, type DragEvent } from "react";
 import { useViewMode } from "../context/ViewModeContext";
-import { auditionAsset, stopAudition, setVolume, getVolume, type AssetCategory } from "../audio/synth";
+import { auditionAsset, stopAudition, setVolume, getVolume, snapCrossfadeSec, type AssetCategory } from "../audio/synth";
 import { TransportBar } from "./TransportBar";
 import { PlayingNodeProvider } from "../context/PlayingNodeContext";
 import { SequenceProvider } from "../context/SequenceContext";
@@ -483,6 +483,17 @@ export function Canvas({ level, projectId, onLevelEdit }: CanvasProps) {
       return undefined;
     }
 
+    // Look up BPM from the matched asset so crossfades can snap to bar boundaries
+    function findBpm(n: Node): number | undefined {
+      const d = n.data as Record<string, unknown>;
+      const assetRef = d.asset as string | undefined;
+      if (assetRef && level?.assets) {
+        const matched = level.assets.find((a) => a.filename === assetRef || a.id === assetRef);
+        if (matched?.bpm) return matched.bpm;
+      }
+      return undefined;
+    }
+
     const playOrder = order; // already filtered to musicState + transition
 
     sequenceAbort.current = false;
@@ -490,7 +501,11 @@ export function Canvas({ level, projectId, onLevelEdit }: CanvasProps) {
     setSequenceTotalNodes(playOrder.length);
     sequenceOrderRef.current = playOrder;
 
-    // Play nodes one at a time — full file duration, then move on
+    // Play nodes with audible crossfades. Track B starts `crossfadeSec` before
+    // track A's audible end, both fade simultaneously, so transitions are
+    // seamless instead of fade-out → silence → fade-in. Crossfade duration
+    // snaps to the nearest whole bar at the *outgoing* track's BPM so the
+    // overlap lands on a musical boundary.
     let i = 0;
     async function playNext() {
       if (sequenceAbort.current || i >= playOrder.length) {
@@ -504,26 +519,45 @@ export function Canvas({ level, projectId, onLevelEdit }: CanvasProps) {
       const n = playOrder[i];
       const audioFile = n.type === "transition" ? "transition_sweep.mp3" : findAudioFile(n);
       const category: AssetCategory = n.type === "transition" ? "transition" : "loop";
+      const bpm = findBpm(n) ?? 120;
 
       setSequenceNodeId(n.id);
       setSequenceNodeType(n.type ?? null);
       setSequenceNodeIndex(i);
 
-      // Quick mode: transition preview (first/last 10s = ~20s), Full mode: entire file
       const isQuick = sequenceQuickModeRef.current;
+      // Crossfade window: 4.5s target, snapped to bars. Suppress for the very
+      // last track (nothing to crossfade into) and for Quick mode (Transition
+      // Check is meant to expose seams, not blend them).
+      const isLast = i === playOrder.length - 1;
+      const wantCrossfade = !isQuick && !isLast;
+      const crossfadeSec = wantCrossfade ? snapCrossfadeSec(4.5, bpm) : 0;
+
       const actualDurationMs = await auditionAsset({
         id: n.id,
         category,
         key: "Dm",
-        bpm: 120,
+        bpm,
         audioFile,
         playbackMode: isQuick && n.type !== "transition" ? "transition" : "full",
+        // First track in the sequence starts clean; subsequent tracks layer on
+        // top of the previous one's tail so the crossfade actually overlaps.
+        noStopPrevious: i > 0 && wantCrossfade,
+        // Match the fade envelope to the crossfade window so the gain ramps
+        // line up across both tracks.
+        fadeInSec: wantCrossfade ? Math.min(crossfadeSec, 1.5) : undefined,
+        fadeOutSec: wantCrossfade ? crossfadeSec : undefined,
       });
 
       i++;
-      // In quick mode, cap at 20s per node; in full mode play entire file
+      // Schedule the next track to begin `crossfadeSec` before this one's
+      // audible end so they overlap. If no crossfade (Quick mode or last
+      // track), keep the legacy 300ms gap.
       const maxMs = isQuick ? Math.min(actualDurationMs, 20500) : actualDurationMs;
-      const waitMs = maxMs > 0 ? maxMs + 300 : 1000;
+      const crossfadeMs = crossfadeSec * 1000;
+      const waitMs = wantCrossfade
+        ? Math.max(500, maxMs - crossfadeMs)
+        : (maxMs > 0 ? maxMs + 300 : 1000);
       setTimeout(playNext, waitMs);
     }
     playNext();

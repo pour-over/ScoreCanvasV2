@@ -190,6 +190,10 @@ interface FilePlaybackOptions {
    * Transition Check ignores this so the start-of-file is always audible.
    */
   startOffsetSec?: number;
+  /** Fade-in duration (seconds). Default ~1s. */
+  fadeInSec?: number;
+  /** Fade-out duration (seconds). Default 3.5s. Match crossfadeSec for sequence playback. */
+  fadeOutSec?: number;
 }
 
 async function playAudioFile(
@@ -215,9 +219,10 @@ async function playAudioFile(
   activeSources.push(source);
   activeFileGains.push(fileGain);
 
-  // Consistent fade duration: 3.5s everywhere (matches stopAudition)
-  const fadeOut = 3.5;
-  const fadeIn = 1.0;
+  // Fade durations are configurable so sequence playback can request a
+  // longer cross-fade window. Defaults match the legacy 1.0s in / 3.5s out.
+  const fadeOut = opts.fadeOutSec ?? 3.5;
+  const fadeIn = opts.fadeInSec ?? 1.0;
 
   if (mode === "transition" && buffer.duration > 22) {
     // Transition Check: first 10s (fade in 1s, fade out 3.5s), gap, then last 10s (fade in 1s, fade out 3.5s)
@@ -292,6 +297,17 @@ export interface AuditionParams {
    * Ignored when playbackMode is "transition".
    */
   startOffsetSec?: number;
+  /**
+   * If true, don't fade out / kill any currently-playing audio when this
+   * one starts. The new track layers on top and takes over `currentAssetId`,
+   * but the previous source continues until its own fade-out envelope ends.
+   * Used for sequence crossfades: track A fades out while track B fades in.
+   */
+  noStopPrevious?: boolean;
+  /** Override fade-in duration (seconds). */
+  fadeInSec?: number;
+  /** Override fade-out duration (seconds). */
+  fadeOutSec?: number;
 }
 
 /** Stop with a smooth 3.5s fadeout */
@@ -367,8 +383,13 @@ export async function auditionAsset(params: AuditionParams): Promise<number> {
     return 0;
   }
 
-  // Stop previous immediately (no fade) to switch tracks cleanly
-  stopImmediate();
+  // For solo audition / user clicks: stop the previous track immediately so
+  // the new one is audible without fighting the old. For sequence crossfades:
+  // leave the previous track playing — it'll fade out on its own envelope
+  // while this new one fades in.
+  if (!params.noStopPrevious) {
+    stopImmediate();
+  }
 
   isPlaying = true;
   currentAssetId = params.id;
@@ -395,6 +416,8 @@ export async function auditionAsset(params: AuditionParams): Promise<number> {
     mode: playbackMode,
     pitchShift,
     startOffsetSec,
+    fadeInSec: params.fadeInSec,
+    fadeOutSec: params.fadeOutSec,
   });
 
   if (durationMs !== null) {
@@ -413,4 +436,23 @@ export async function auditionAsset(params: AuditionParams): Promise<number> {
 
 export function getPlayingAssetId(): string | null {
   return currentAssetId;
+}
+
+/**
+ * Pick a musically-meaningful crossfade duration around `targetSec` by snapping
+ * to the nearest whole bar at the given BPM (assuming 4/4 time).
+ *
+ * BPM = 120 → bar = 2s   → 4.5s targeted snaps to 4s (2 bars)
+ * BPM = 92  → bar = 2.6s → 4.5s snaps to ~5.2s (2 bars)
+ * BPM = 140 → bar = 1.7s → 4.5s snaps to ~5.1s (3 bars)
+ *
+ * Falls back to targetSec if BPM is missing/zero. Clamps to [2s, 8s] so a
+ * weird BPM can't produce an unusable crossfade window.
+ */
+export function snapCrossfadeSec(targetSec: number, bpm: number | undefined): number {
+  if (!bpm || bpm <= 0) return targetSec;
+  const barSec = 240 / bpm; // 4 beats per bar
+  const bars = Math.max(1, Math.round(targetSec / barSec));
+  const snapped = bars * barSec;
+  return Math.max(2, Math.min(8, snapped));
 }
