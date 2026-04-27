@@ -1,60 +1,223 @@
 import { useState, useEffect, useRef } from "react";
 import { SegueDemoGallery } from "./SegueDemoGallery";
 
-// ─── Animated node graph mock ───────────────────────────────────────────────
+// ─── Animated node graph mock — mirrors real-app node anatomy ───────────────
+
+interface HeroNode {
+  x: number;
+  y: number;
+  title: string;
+  type: "event" | "music" | "transition" | "stinger";
+  color: string;
+  badge: string;     // status pill text (FINAL / APPROVED)
+  badgeIcon: string; // ✦ / ✓
+  id: string;        // ID chip text (JOUR-101 style)
+  intensity?: number; // 0-100, for music-state intensity bar
+}
+
+const TYPE_META: Record<HeroNode["type"], { icon: string; label: string }> = {
+  event:      { icon: "▶", label: "CINEMATIC"  },
+  music:      { icon: "♪", label: "MUSIC STATE" },
+  transition: { icon: "→", label: "TRANSITION" },
+  stinger:    { icon: "⚡", label: "STINGER"    },
+};
 
 function AnimatedGraph() {
   const [activeNode, setActiveNode] = useState(0);
-  const nodes = [
-    { x: 80, y: 60, label: "Opening\nCinematic", type: "event", color: "#e94560" },
-    { x: 240, y: 40, label: "Explore\nTheme", type: "music", color: "#4ecdc4" },
-    { x: 400, y: 80, label: "Crossfade", type: "transition", color: "#818cf8" },
-    { x: 560, y: 50, label: "Combat\nIntense", type: "music", color: "#4ecdc4" },
-    { x: 400, y: 150, label: "Death\nSting", type: "stinger", color: "#f97316" },
-    { x: 720, y: 90, label: "Victory\nFanfare", type: "music", color: "#4ecdc4" },
+
+  const nodes: HeroNode[] = [
+    { x: 100, y: 90,  title: "Opening Cinematic", type: "event",      color: "#e94560", badge: "FINAL",    badgeIcon: "✦", id: "JOUR-101" },
+    { x: 320, y: 80,  title: "Explore Theme",     type: "music",      color: "#4ecdc4", badge: "APPROVED", badgeIcon: "✓", id: "JOUR-102", intensity: 35 },
+    { x: 540, y: 140, title: "Crossfade",         type: "transition", color: "#818cf8", badge: "APPROVED", badgeIcon: "✓", id: "JOUR-103" },
+    { x: 760, y: 80,  title: "Combat Intense",    type: "music",      color: "#4ecdc4", badge: "APPROVED", badgeIcon: "✓", id: "JOUR-104", intensity: 80 },
+    { x: 320, y: 220, title: "Death Sting",       type: "stinger",    color: "#f97316", badge: "FINAL",    badgeIcon: "✦", id: "JOUR-105" },
+    { x: 940, y: 140, title: "Victory Fanfare",   type: "music",      color: "#4ecdc4", badge: "FINAL",    badgeIcon: "✦", id: "JOUR-106", intensity: 65 },
   ];
-  const edges = [[0,1],[1,2],[2,3],[3,5],[1,4],[4,1]];
+  const edges: Array<[number, number, boolean]> = [
+    // [from, to, conditional?]
+    [0, 1, false], [1, 2, false], [2, 3, false], [3, 5, false],
+    [1, 4, true], [4, 1, true],
+  ];
 
   useEffect(() => {
-    const interval = setInterval(() => setActiveNode((n) => (n + 1) % nodes.length), 2000);
+    const interval = setInterval(() => setActiveNode((n) => (n + 1) % nodes.length), 2200);
     return () => clearInterval(interval);
   }, [nodes.length]);
 
+  const NW = 168;  // node width
+  const NH = 84;   // node height
+
   return (
-    <svg viewBox="0 0 800 200" className="w-full max-w-3xl mx-auto opacity-80" style={{ filter: "drop-shadow(0 0 40px rgba(78,205,196,0.15))" }}>
-      {edges.map(([from, to], i) => (
-        <line key={i}
-          x1={nodes[from].x} y1={nodes[from].y}
-          x2={nodes[to].x} y2={nodes[to].y}
-          stroke="#3a3a5c" strokeWidth="2" strokeDasharray={i > 3 ? "4 4" : "none"}
-        />
-      ))}
-      {nodes.map((n, i) => {
-        const isActive = i === activeNode;
+    <svg
+      viewBox="0 0 1080 320"
+      className="w-full max-w-4xl mx-auto"
+      style={{ filter: "drop-shadow(0 0 60px rgba(78,205,196,0.18))" }}
+    >
+      {/* Edges */}
+      {edges.map(([from, to, conditional], i) => {
+        const a = nodes[from];
+        const b = nodes[to];
+        const fromActive = from === activeNode;
+        const stroke = fromActive ? a.color : "#3a3a5c";
+        const opacity = fromActive ? 0.9 : 0.55;
         return (
           <g key={i}>
-            {isActive && (
-              <circle cx={n.x} cy={n.y} r="32" fill="none" stroke={n.color} strokeWidth="1.5" opacity="0.4">
-                <animate attributeName="r" values="28;36;28" dur="2s" repeatCount="indefinite" />
-                <animate attributeName="opacity" values="0.5;0.1;0.5" dur="2s" repeatCount="indefinite" />
+            <line
+              x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+              stroke={stroke}
+              strokeWidth={fromActive ? 2 : 1.5}
+              strokeDasharray={conditional ? "6 5" : "none"}
+              opacity={opacity}
+            />
+            {/* Traveling data-pulse along an edge leaving the active node */}
+            {fromActive && (
+              <circle r="3.5" fill={a.color}>
+                <animate attributeName="cx" values={`${a.x};${b.x}`} dur="1.4s" repeatCount="indefinite" />
+                <animate attributeName="cy" values={`${a.y};${b.y}`} dur="1.4s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0;1;1;0" dur="1.4s" repeatCount="indefinite" />
               </circle>
             )}
-            <rect x={n.x - 44} y={n.y - 22} width="88" height="44" rx="8"
-              fill={isActive ? n.color + "30" : "#0d0d1a"}
-              stroke={isActive ? n.color : "#3a3a5c"}
-              strokeWidth={isActive ? 2 : 1}
-            />
-            {n.label.split("\n").map((line, li) => (
-              <text key={li} x={n.x} y={n.y - 4 + li * 14} textAnchor="middle" fontSize="10" fontFamily="monospace"
-                fill={isActive ? n.color : "#8a8aa3"}
-              >
-                {line}
-              </text>
-            ))}
+          </g>
+        );
+      })}
+
+      {/* Nodes */}
+      {nodes.map((n, i) => {
+        const isActive = i === activeNode;
+        const meta = TYPE_META[n.type];
+        const x0 = n.x - NW / 2;
+        const y0 = n.y - NH / 2;
+
+        return (
+          <g key={i}>
+            {/* Active ripple */}
             {isActive && (
-              <circle cx={n.x - 32} cy={n.y - 10} r="3" fill="#4ade80">
-                <animate attributeName="opacity" values="1;0.3;1" dur="1s" repeatCount="indefinite" />
-              </circle>
+              <>
+                <rect
+                  x={x0 - 6} y={y0 - 6} width={NW + 12} height={NH + 12} rx={14}
+                  fill="none" stroke={n.color} strokeWidth="1.5" opacity="0.5"
+                >
+                  <animate attributeName="opacity" values="0.6;0.05;0.6" dur="2.2s" repeatCount="indefinite" />
+                  <animate attributeName="stroke-width" values="1.5;3;1.5" dur="2.2s" repeatCount="indefinite" />
+                </rect>
+                <rect
+                  x={x0 - 14} y={y0 - 14} width={NW + 28} height={NH + 28} rx={18}
+                  fill="none" stroke={n.color} strokeWidth="1" opacity="0.25"
+                >
+                  <animate attributeName="opacity" values="0.3;0;0.3" dur="2.2s" repeatCount="indefinite" />
+                </rect>
+              </>
+            )}
+
+            {/* Body */}
+            <rect
+              x={x0} y={y0} width={NW} height={NH} rx={10}
+              fill={isActive ? "#13132a" : "#0d0d1a"}
+              stroke={isActive ? n.color : "#3a3a5c"}
+              strokeWidth={isActive ? 1.8 : 1}
+            />
+            {/* Left accent stripe (matches real nodes' category color) */}
+            <rect x={x0} y={y0} width="3" height={NH} rx={1.5} fill={n.color} opacity={isActive ? 1 : 0.7} />
+
+            {/* Category strip — icon + label */}
+            <g opacity={isActive ? 1 : 0.85}>
+              <text x={x0 + 14} y={y0 + 18} fontSize="11" fontFamily="monospace" fill={n.color}>
+                {meta.icon}
+              </text>
+              <text x={x0 + 28} y={y0 + 18} fontSize="9" fontFamily="monospace" fill={n.color} letterSpacing="0.12em">
+                {meta.label}
+              </text>
+            </g>
+
+            {/* Play indicator top-right */}
+            <g opacity={isActive ? 1 : 0.45}>
+              <circle cx={x0 + NW - 14} cy={y0 + 14} r={7} fill="none" stroke={isActive ? n.color : "#5a5a7c"} strokeWidth="1" />
+              <polygon
+                points={`${x0 + NW - 16},${y0 + 11} ${x0 + NW - 16},${y0 + 17} ${x0 + NW - 11},${y0 + 14}`}
+                fill={isActive ? n.color : "#5a5a7c"}
+              />
+            </g>
+
+            {/* Title */}
+            <text
+              x={x0 + 14} y={y0 + 44}
+              fontSize="13" fontWeight="700" fontFamily="system-ui, -apple-system, sans-serif"
+              fill={isActive ? "#ffffff" : "#c8c8d8"}
+            >
+              {n.title}
+            </text>
+
+            {/* Footer: status pill + ID chip + (music-only) intensity bar */}
+            <g opacity={isActive ? 1 : 0.75}>
+              {/* Status pill */}
+              <rect
+                x={x0 + 12} y={y0 + NH - 22} width={n.badge.length * 6 + 18} height={14} rx={3}
+                fill={n.badge === "FINAL" ? "rgba(245,158,11,0.18)" : "rgba(34,197,94,0.18)"}
+                stroke={n.badge === "FINAL" ? "rgba(245,158,11,0.4)" : "rgba(34,197,94,0.4)"}
+                strokeWidth="0.6"
+              />
+              <text
+                x={x0 + 18} y={y0 + NH - 12}
+                fontSize="8" fontFamily="monospace" letterSpacing="0.08em"
+                fill={n.badge === "FINAL" ? "#f59e0b" : "#22c55e"}
+              >
+                {n.badgeIcon} {n.badge}
+              </text>
+              {/* ID chip (right side) */}
+              <text
+                x={x0 + NW - 12} y={y0 + NH - 12}
+                fontSize="8" fontFamily="monospace" textAnchor="end"
+                fill="#5a5a7c"
+              >
+                {n.id}
+              </text>
+            </g>
+
+            {/* Intensity bar for music states (only) */}
+            {n.intensity !== undefined && (
+              <g>
+                <rect x={x0 + 14} y={y0 + 60} width={NW - 28} height={2} rx={1} fill="#1e1e3a" />
+                <rect
+                  x={x0 + 14} y={y0 + 60}
+                  width={(NW - 28) * (n.intensity / 100)} height={2} rx={1}
+                  fill={n.color} opacity={isActive ? 1 : 0.7}
+                >
+                  {isActive && (
+                    <animate
+                      attributeName="width"
+                      values={`${(NW - 28) * 0.2};${(NW - 28) * (n.intensity / 100)};${(NW - 28) * 0.2}`}
+                      dur="2.2s" repeatCount="indefinite"
+                    />
+                  )}
+                </rect>
+              </g>
+            )}
+
+            {/* Active LED indicator (waveform-ish) bottom-left of category strip */}
+            {isActive && (
+              <g>
+                {[0, 1, 2].map((bi) => (
+                  <rect
+                    key={bi}
+                    x={x0 + NW - 38 + bi * 5} y={y0 + 12}
+                    width="2.5" height="8" rx={0.8}
+                    fill="#4ade80"
+                  >
+                    <animate
+                      attributeName="height"
+                      values={`${4 + bi * 2};${10 - bi};${4 + bi * 2}`}
+                      dur={`${0.6 + bi * 0.15}s`}
+                      repeatCount="indefinite"
+                    />
+                    <animate
+                      attributeName="y"
+                      values={`${y0 + 16 - bi};${y0 + 13};${y0 + 16 - bi}`}
+                      dur={`${0.6 + bi * 0.15}s`}
+                      repeatCount="indefinite"
+                    />
+                  </rect>
+                ))}
+              </g>
             )}
           </g>
         );
