@@ -657,7 +657,7 @@ export function Landing() {
           )}
 
           <p className="text-[10px] text-canvas-muted/60 mt-6 italic">
-            Built by Ted Kocher — a Lead Music Designer with 18 years in AAA games.
+            Built by <a href="https://tedkocher.com" target="_blank" rel="noopener" className="text-canvas-highlight hover:underline">Ted Kocher</a> — a Lead Music Designer with 18 years in AAA games.
             <br/>
             Eighteen years of watching brilliant people suffer through exactly this at every major studio.
           </p>

@@ -1,5 +1,7 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { MusicAsset } from "../data/projects";
+import { stopAudition, type AssetCategory } from "../audio/synth";
+import { priorityAuditionAsset } from "../audio/coordinator";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -65,6 +67,55 @@ export function StemEditor({ asset, expanded, onExpand, onCollapse }: StemEditor
   );
 
   const [aiGenerating, setAiGenerating] = useState<string | null>(null);
+
+  // Master-output playback state — same engine as ProjectAssets / AssetBrowser
+  const [playMode, setPlayMode] = useState<"idle" | "full" | "transition">("idle");
+  const playMasterFull = useCallback(async () => {
+    const durationMs = await priorityAuditionAsset(
+      {
+        id: asset.id + "-master",
+        category: asset.category as AssetCategory,
+        key: asset.key,
+        bpm: asset.bpm,
+        audioFile: asset.audioFile,
+      },
+      "modal",
+    );
+    if (durationMs > 0) {
+      setPlayMode("full");
+    }
+  }, [asset]);
+  const playMasterTransition = useCallback(async () => {
+    const durationMs = await priorityAuditionAsset(
+      {
+        id: asset.id + "-master-trans",
+        category: asset.category as AssetCategory,
+        key: asset.key,
+        bpm: asset.bpm,
+        audioFile: asset.audioFile,
+        playbackMode: "transition",
+      },
+      "modal",
+    );
+    if (durationMs > 0) {
+      setPlayMode("transition");
+    }
+  }, [asset]);
+  const stopMaster = useCallback(() => {
+    stopAudition();
+    setPlayMode("idle");
+  }, []);
+  // Reset play state if a different asset takes priority elsewhere
+  useEffect(() => {
+    const onPriority = (ev: WindowEventMap["audition-priority-play"]) => {
+      const id = ev.detail.assetId;
+      if (id !== asset.id + "-master" && id !== asset.id + "-master-trans") {
+        setPlayMode("idle");
+      }
+    };
+    window.addEventListener("audition-priority-play", onPriority);
+    return () => window.removeEventListener("audition-priority-play", onPriority);
+  }, [asset.id]);
 
   const toggleMute = useCallback((idx: number) => {
     setStems((s) => s.map((st, i) => i === idx ? { ...st, muted: !st.muted } : st));
@@ -189,17 +240,41 @@ export function StemEditor({ asset, expanded, onExpand, onCollapse }: StemEditor
           </div>
         </div>
 
-        {/* Master waveform */}
+        {/* Master waveform — wired to the same engine as ProjectAssets */}
         <div className="px-4 pt-3 pb-2">
           <div className="bg-canvas-bg/60 rounded-lg p-2 border border-canvas-accent/50">
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-1 gap-3">
               <span className="text-[9px] font-mono text-canvas-muted uppercase">Master Output</span>
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] font-mono text-canvas-muted">0:00</span>
-                <div className="w-48 h-1 bg-canvas-accent/50 rounded-full overflow-hidden">
-                  <div className="w-0 h-full bg-canvas-highlight rounded-full" />
-                </div>
-                <span className="text-[9px] font-mono text-canvas-muted">{asset.duration}</span>
+              <div className="flex items-center gap-1.5">
+                {asset.audioFile ? (
+                  <>
+                    <button
+                      onClick={playMode === "full" ? stopMaster : playMasterFull}
+                      title={playMode === "full" ? "Stop" : "Play full file (dead-air-skip + bar-synced fades)"}
+                      className={`px-2 py-0.5 text-[9px] font-bold rounded border transition-colors flex items-center gap-1 ${
+                        playMode === "full"
+                          ? "bg-canvas-highlight text-white border-canvas-highlight"
+                          : "bg-green-900/30 text-green-300 border-green-500/30 hover:bg-green-500/30"
+                      }`}
+                    >
+                      {playMode === "full" ? "■ Stop" : "▶ Play Full"}
+                    </button>
+                    <button
+                      onClick={playMode === "transition" ? stopMaster : playMasterTransition}
+                      title={playMode === "transition" ? "Stop" : "Audition first/last 10s with fades"}
+                      className={`px-2 py-0.5 text-[9px] font-bold rounded border transition-colors flex items-center gap-1 ${
+                        playMode === "transition"
+                          ? "bg-canvas-highlight text-white border-canvas-highlight"
+                          : "bg-canvas-accent/40 text-canvas-text border-canvas-accent hover:bg-canvas-accent/60"
+                      }`}
+                    >
+                      {playMode === "transition" ? "■ Stop" : "⟷ Transition Check"}
+                    </button>
+                  </>
+                ) : (
+                  <span className="text-[9px] font-mono text-canvas-muted/60 italic">no audio file</span>
+                )}
+                <span className="text-[9px] font-mono text-canvas-muted ml-2">{asset.duration}</span>
               </div>
             </div>
             <div className="h-10 flex items-center">
