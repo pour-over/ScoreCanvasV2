@@ -7,36 +7,50 @@ interface HeroNode {
   x: number;
   y: number;
   title: string;
-  type: "event" | "music" | "transition" | "stinger";
+  type: "event" | "music" | "transition" | "stinger" | "parameter";
   color: string;
-  badge: string;     // status pill text (FINAL / APPROVED)
-  badgeIcon: string; // ✦ / ✓
+  status: "TEMP" | "WIP" | "DRAFT" | "REVIEW" | "APPROVED";
   id: string;        // ID chip text (JOUR-101 style)
   intensity?: number; // 0-100, for music-state intensity bar
+  paramValue?: number; // 0-100, for RTPC nodes — drawn as a knob position
 }
 
 const TYPE_META: Record<HeroNode["type"], { icon: string; label: string }> = {
-  event:      { icon: "▶", label: "CINEMATIC"  },
+  event:      { icon: "▶", label: "CINEMATIC"   },
   music:      { icon: "♪", label: "MUSIC STATE" },
-  transition: { icon: "→", label: "TRANSITION" },
-  stinger:    { icon: "⚡", label: "STINGER"    },
+  transition: { icon: "→", label: "TRANSITION"  },
+  stinger:    { icon: "⚡", label: "STINGER"     },
+  parameter:  { icon: "◐", label: "RTPC"        },
+};
+
+/** Workflow status pill styling — five distinct states a music designer cycles
+ * a cue through. Visibly different at a glance so the graph reads as a project
+ * at multiple stages of completion, not a uniform thing. */
+const STATUS_META: Record<HeroNode["status"], { icon: string; fg: string; bg: string; bd: string }> = {
+  TEMP:     { icon: "◔", fg: "#fbbf24", bg: "rgba(251,191,36,0.15)", bd: "rgba(251,191,36,0.4)"  }, // amber
+  WIP:      { icon: "✎", fg: "#fb923c", bg: "rgba(251,146,60,0.15)", bd: "rgba(251,146,60,0.4)"  }, // orange
+  DRAFT:    { icon: "✏", fg: "#94a3b8", bg: "rgba(148,163,184,0.15)", bd: "rgba(148,163,184,0.4)" }, // slate
+  REVIEW:   { icon: "👁", fg: "#a78bfa", bg: "rgba(167,139,250,0.15)", bd: "rgba(167,139,250,0.4)" }, // violet
+  APPROVED: { icon: "✓", fg: "#22c55e", bg: "rgba(34,197,94,0.18)",  bd: "rgba(34,197,94,0.4)"   }, // green
 };
 
 function AnimatedGraph() {
   const [activeNode, setActiveNode] = useState(0);
 
   const nodes: HeroNode[] = [
-    { x: 100, y: 90,  title: "Opening Cinematic", type: "event",      color: "#e94560", badge: "FINAL",    badgeIcon: "✦", id: "JOUR-101" },
-    { x: 320, y: 80,  title: "Explore Theme",     type: "music",      color: "#4ecdc4", badge: "APPROVED", badgeIcon: "✓", id: "JOUR-102", intensity: 35 },
-    { x: 540, y: 140, title: "Crossfade",         type: "transition", color: "#818cf8", badge: "APPROVED", badgeIcon: "✓", id: "JOUR-103" },
-    { x: 760, y: 80,  title: "Combat Intense",    type: "music",      color: "#4ecdc4", badge: "APPROVED", badgeIcon: "✓", id: "JOUR-104", intensity: 80 },
-    { x: 320, y: 220, title: "Death Sting",       type: "stinger",    color: "#f97316", badge: "FINAL",    badgeIcon: "✦", id: "JOUR-105" },
-    { x: 940, y: 140, title: "Victory Fanfare",   type: "music",      color: "#4ecdc4", badge: "FINAL",    badgeIcon: "✦", id: "JOUR-106", intensity: 65 },
+    { x: 100, y: 165, title: "Opening Cinematic", type: "event",      color: "#e94560", status: "TEMP",     id: "JOUR-101" },
+    { x: 320, y: 155, title: "Explore Theme",     type: "music",      color: "#4ecdc4", status: "APPROVED", id: "JOUR-102", intensity: 35 },
+    { x: 540, y: 215, title: "Crossfade",         type: "transition", color: "#818cf8", status: "WIP",      id: "JOUR-103" },
+    { x: 760, y: 155, title: "Combat Intense",    type: "music",      color: "#4ecdc4", status: "REVIEW",   id: "JOUR-104", intensity: 80 },
+    { x: 320, y: 295, title: "Death Sting",       type: "stinger",    color: "#f97316", status: "DRAFT",    id: "JOUR-105" },
+    { x: 940, y: 215, title: "Victory Fanfare",   type: "music",      color: "#4ecdc4", status: "APPROVED", id: "JOUR-106", intensity: 65 },
+    { x: 760, y: 50,  title: "Combat Intensity",  type: "parameter",  color: "#a855f7", status: "WIP",      id: "JOUR-107", paramValue: 72 },
   ];
   const edges: Array<[number, number, boolean]> = [
     // [from, to, conditional?]
     [0, 1, false], [1, 2, false], [2, 3, false], [3, 5, false],
     [1, 4, true], [4, 1, true],
+    [6, 3, true], // RTPC drives Combat Intense — conditional/dashed
   ];
 
   useEffect(() => {
@@ -49,7 +63,7 @@ function AnimatedGraph() {
 
   return (
     <svg
-      viewBox="0 0 1080 320"
+      viewBox="0 0 1080 380"
       className="w-full max-w-4xl mx-auto"
       style={{ filter: "drop-shadow(0 0 60px rgba(78,205,196,0.18))" }}
     >
@@ -148,21 +162,26 @@ function AnimatedGraph() {
             </text>
 
             {/* Footer: status pill + ID chip + (music-only) intensity bar */}
-            <g opacity={isActive ? 1 : 0.75}>
-              {/* Status pill */}
-              <rect
-                x={x0 + 12} y={y0 + NH - 22} width={n.badge.length * 6 + 18} height={14} rx={3}
-                fill={n.badge === "FINAL" ? "rgba(245,158,11,0.18)" : "rgba(34,197,94,0.18)"}
-                stroke={n.badge === "FINAL" ? "rgba(245,158,11,0.4)" : "rgba(34,197,94,0.4)"}
-                strokeWidth="0.6"
-              />
-              <text
-                x={x0 + 18} y={y0 + NH - 12}
-                fontSize="8" fontFamily="monospace" letterSpacing="0.08em"
-                fill={n.badge === "FINAL" ? "#f59e0b" : "#22c55e"}
-              >
-                {n.badgeIcon} {n.badge}
-              </text>
+            <g opacity={isActive ? 1 : 0.78}>
+              {(() => {
+                const sm = STATUS_META[n.status];
+                const pillW = n.status.length * 6 + 22;
+                return (
+                  <>
+                    {/* Status pill */}
+                    <rect
+                      x={x0 + 12} y={y0 + NH - 22} width={pillW} height={14} rx={3}
+                      fill={sm.bg} stroke={sm.bd} strokeWidth="0.6"
+                    />
+                    <text
+                      x={x0 + 18} y={y0 + NH - 12}
+                      fontSize="8" fontFamily="monospace" letterSpacing="0.08em" fill={sm.fg}
+                    >
+                      {sm.icon} {n.status}
+                    </text>
+                  </>
+                );
+              })()}
               {/* ID chip (right side) */}
               <text
                 x={x0 + NW - 12} y={y0 + NH - 12}
@@ -192,6 +211,44 @@ function AnimatedGraph() {
                 </rect>
               </g>
             )}
+
+            {/* RTPC value: knob arc + numeric readout */}
+            {n.paramValue !== undefined && (() => {
+              const cx = x0 + NW - 30;
+              const cy = y0 + 56;
+              const r = 9;
+              // Sweep from -135° (bottom-left) to +135° (bottom-right) = 270° arc
+              const startA = -Math.PI * 0.75;
+              const endA = startA + (Math.PI * 1.5) * (n.paramValue / 100);
+              const tickX = cx + r * Math.cos(endA);
+              const tickY = cy + r * Math.sin(endA);
+              return (
+                <g opacity={isActive ? 1 : 0.7}>
+                  {/* Knob ring */}
+                  <circle cx={cx} cy={cy} r={r} fill="none" stroke="#3a3a5c" strokeWidth="1.5" />
+                  {/* Filled arc up to current value (approximate via two short segments) */}
+                  <path
+                    d={`M ${cx + r * Math.cos(startA)} ${cy + r * Math.sin(startA)}
+                        A ${r} ${r} 0 ${(n.paramValue / 100) > 0.5 ? 1 : 0} 1 ${tickX} ${tickY}`}
+                    fill="none" stroke={n.color} strokeWidth="2" strokeLinecap="round"
+                  >
+                    {isActive && (
+                      <animate
+                        attributeName="stroke-dasharray"
+                        values="0 100;100 100;0 100"
+                        dur="3s" repeatCount="indefinite"
+                      />
+                    )}
+                  </path>
+                  {/* Pointer */}
+                  <line x1={cx} y1={cy} x2={tickX} y2={tickY} stroke={n.color} strokeWidth="1.5" strokeLinecap="round" />
+                  {/* Numeric readout to the left of the knob */}
+                  <text x={cx - r - 6} y={cy + 4} fontSize="11" fontFamily="monospace" textAnchor="end" fill={n.color} fontWeight="700">
+                    {n.paramValue}
+                  </text>
+                </g>
+              );
+            })()}
 
             {/* Active LED indicator (waveform-ish) bottom-left of category strip */}
             {isActive && (

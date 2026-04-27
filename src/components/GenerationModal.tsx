@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { segue, type SegueGenerateRequest, type SegueJob, type SegueKind, type SegueOutput } from "../lib/segue";
 import type { MusicAsset } from "../data/projects";
+import { resolveAudioUrl as resolveSynthUrl } from "../audio/synth";
 
 export interface GenerationRequestEvent {
   asset: MusicAsset & { levelName?: string; levelId?: string };
@@ -45,6 +46,10 @@ function isPublicAudioUrl(url: string): boolean {
 function resolveAudioUrl(asset: MusicAsset): string {
   if (!asset.audioFile) throw new Error(`Asset "${asset.filename}" has no audioFile.`);
   if (isPublicAudioUrl(asset.audioFile)) return asset.audioFile;
+  // Supabase-stored uploads — already absolute public URLs, no CDN swap needed.
+  if (asset.audioFile.startsWith("supabase://")) {
+    return resolveSynthUrl(asset.audioFile);
+  }
   const path = asset.audioFile.startsWith("/") ? asset.audioFile : `/audio/${asset.audioFile}`;
   // Prefer an explicit audio-CDN base in dev so Kie can actually fetch the
   // asset (localhost is unreachable from Kie's servers).

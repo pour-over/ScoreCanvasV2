@@ -4,6 +4,8 @@
  * Default volume: 60%.
  */
 
+import { supabase, AUDIO_BUCKET } from "../lib/supabase";
+
 // ─── Audio context singleton ────────────────────────────────────────────────
 
 let ctx: AudioContext | null = null;
@@ -47,6 +49,30 @@ export function getVolume(): number {
   return volumeLevel;
 }
 
+// ─── Audio URL resolver ─────────────────────────────────────────────────────
+
+/**
+ * Single source of truth for resolving a `MusicAsset.audioFile` field to a
+ * fetchable URL. Handles three forms:
+ *
+ *   "supabase://{user_id}/{project_id}/{file}" → public URL from the
+ *     user-audio bucket (Supabase Storage). Public bucket: no signing.
+ *   "/audio/..."                                → returned as-is
+ *   "journey2/mus_sands_combat.mp3"             → "/audio/" prefix added
+ *
+ * Used by every fetch site in this file (loadWaveformPeaks, findFirstSoundSec,
+ * playAudioFile) and by GenerationModal. Keeping resolution centralised means
+ * adding new storage backends later is a one-file change.
+ */
+export function resolveAudioUrl(audioFile: string): string {
+  if (audioFile.startsWith("supabase://")) {
+    const path = audioFile.slice("supabase://".length);
+    return supabase.storage.from(AUDIO_BUCKET).getPublicUrl(path).data.publicUrl;
+  }
+  if (audioFile.startsWith("/")) return audioFile;
+  return `/audio/${audioFile}`;
+}
+
 // ─── MP3 file playback ──────────────────────────────────────────────────────
 
 async function loadAudioBuffer(url: string): Promise<AudioBuffer | null> {
@@ -74,7 +100,7 @@ const peaksCache = new Map<string, number[]>();
  * value within its bucket, normalized to 0–1. Cached after first computation.
  */
 export async function loadWaveformPeaks(audioFile: string, buckets = 96): Promise<number[] | null> {
-  const url = `/audio/${audioFile}`;
+  const url = resolveAudioUrl(audioFile);
   const cacheKey = `${url}:${buckets}`;
   if (peaksCache.has(cacheKey)) return peaksCache.get(cacheKey)!;
   const buf = await loadAudioBuffer(url);
@@ -126,7 +152,7 @@ export async function findFirstSoundSec(audioFile: string, opts?: {
   paddingMs?: number;
 }): Promise<number> {
   if (firstSoundCache.has(audioFile)) return firstSoundCache.get(audioFile)!;
-  const url = `/audio/${audioFile}`;
+  const url = resolveAudioUrl(audioFile);
   const buf = await loadAudioBuffer(url);
   if (!buf) return 0;
 
@@ -200,7 +226,7 @@ async function playAudioFile(
   audioFile: string,
   opts: FilePlaybackOptions = {},
 ): Promise<number | null> {
-  const url = `/audio/${audioFile}`;
+  const url = resolveAudioUrl(audioFile);
   const buffer = await loadAudioBuffer(url);
   if (!buffer) return null;
 
