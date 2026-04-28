@@ -1,9 +1,8 @@
 /**
  * Theme palettes for Score Canvas.
  *
- * Each theme is a small set of nominative-fair-use color nods to recognizable
- * audio tools — the names are theme labels only, not affiliations or trademarks.
- * Color palettes themselves aren't copyrightable; we're just paying respect.
+ * Four presets tuned for serious work: Dark (the default), Light, SUPER DARK
+ * (near-black, max-focus), and BRIGHT AS FUCK (daylit, high-contrast).
  *
  * Each palette is six RGB triplets (whitespace-separated, no commas) so they
  * can be slotted into the CSS-variable + Tailwind alpha-channel pattern:
@@ -13,13 +12,9 @@
 
 export type ThemeId =
   | "score-canvas"
-  | "pro-tools"
-  | "logic"
-  | "ableton"
-  | "fl-studio"
-  | "reaper"
-  | "wwise"
-  | "winamp";
+  | "light"
+  | "super-dark"
+  | "bright-as-fuck";
 
 export interface ThemeDef {
   id: ThemeId;
@@ -42,8 +37,8 @@ export interface ThemeDef {
 export const THEMES: ThemeDef[] = [
   {
     id: "score-canvas",
-    label: "Score Canvas",
-    tagline: "Default · dark teal-blue",
+    label: "Dark",
+    tagline: "Default · teal-blue",
     vars: {
       bg:        "26 26 46",
       surface:   "22 33 62",
@@ -55,102 +50,46 @@ export const THEMES: ThemeDef[] = [
     accentAlt: "168 85 247",
   },
   {
-    id: "pro-tools",
-    label: "Pro Tools",
-    tagline: "Studio gray · transport red",
+    id: "light",
+    label: "Light",
+    tagline: "Studio · soft paper",
     vars: {
-      bg:        "30 30 30",
-      surface:   "45 45 45",
-      accent:    "65 65 65",
-      highlight: "220 50 47",
-      text:      "220 220 220",
-      muted:     "140 140 140",
+      bg:        "248 244 236",
+      surface:   "252 248 240",
+      accent:    "224 214 196",
+      highlight: "180 100 70",
+      text:      "60 50 40",
+      muted:     "140 124 108",
     },
-    accentAlt: "245 158 11",
+    accentAlt: "168 100 60",
   },
   {
-    id: "logic",
-    label: "Logic",
-    tagline: "Graphite · Mac blue",
+    id: "super-dark",
+    label: "SUPER DARK",
+    tagline: "Near-black · minimal distraction",
     vars: {
-      bg:        "24 24 26",
-      surface:   "38 38 42",
-      accent:    "60 60 70",
-      highlight: "90 158 245",
-      text:      "230 230 235",
-      muted:     "145 145 155",
+      bg:        "8 8 12",
+      surface:   "16 16 24",
+      accent:    "24 24 40",
+      highlight: "100 255 200",
+      text:      "245 245 250",
+      muted:     "120 120 140",
     },
-    accentAlt: "255 159 10",
+    accentAlt: "255 100 150",
   },
   {
-    id: "ableton",
-    label: "Ableton",
-    tagline: "Warm dark · signature orange",
+    id: "bright-as-fuck",
+    label: "BRIGHT AS FUCK",
+    tagline: "Daylit · high contrast",
     vars: {
-      bg:        "32 32 32",
-      surface:   "50 50 50",
-      accent:    "70 70 70",
-      highlight: "255 152 0",
-      text:      "240 240 240",
-      muted:     "155 155 155",
+      bg:        "250 250 252",
+      surface:   "240 240 245",
+      accent:    "200 200 220",
+      highlight: "0 150 200",
+      text:      "20 20 40",
+      muted:     "100 100 120",
     },
-    accentAlt: "121 204 211",
-  },
-  {
-    id: "fl-studio",
-    label: "FL Studio",
-    tagline: "Producer pink · deep navy",
-    vars: {
-      bg:        "22 22 30",
-      surface:   "35 35 45",
-      accent:    "55 55 70",
-      highlight: "255 75 145",
-      text:      "235 235 240",
-      muted:     "145 145 165",
-    },
-    accentAlt: "125 211 252",
-  },
-  {
-    id: "reaper",
-    label: "Reaper",
-    tagline: "Terminal green · matte dark",
-    vars: {
-      bg:        "18 22 18",
-      surface:   "28 36 28",
-      accent:    "45 60 45",
-      highlight: "80 220 100",
-      text:      "215 230 215",
-      muted:     "130 150 130",
-    },
-    accentAlt: "250 204 21",
-  },
-  {
-    id: "wwise",
-    label: "Wwise",
-    tagline: "Game audio · authoring orange",
-    vars: {
-      bg:        "28 28 32",
-      surface:   "42 42 48",
-      accent:    "60 60 70",
-      highlight: "244 130 32",
-      text:      "230 230 235",
-      muted:     "150 150 160",
-    },
-    accentAlt: "94 234 212",
-  },
-  {
-    id: "winamp",
-    label: "Winamp Classic",
-    tagline: "It really whips · LCD lime",
-    vars: {
-      bg:        "22 22 22",
-      surface:   "38 38 38",
-      accent:    "60 60 60",
-      highlight: "144 238 144",
-      text:      "230 230 230",
-      muted:     "140 140 140",
-    },
-    accentAlt: "255 191 0",
+    accentAlt: "220 80 120",
   },
 ];
 

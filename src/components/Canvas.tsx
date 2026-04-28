@@ -119,8 +119,13 @@ export function Canvas({ level, projectId, onLevelEdit, readOnly = false }: Canv
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState(level.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(level.edges);
-  const { screenToFlowPosition, fitView } = useReactFlow();
-  const { mode, toggle: toggleViewMode } = useViewMode();
+  const { screenToFlowPosition, fitView, zoomTo } = useReactFlow();
+  const { mode, toggle: toggleViewMode, setMode } = useViewMode();
+
+  // Reset to Simple mode on every level change. First impression of a level
+  // should always be the uncluttered view; users can toggle to Detailed
+  // after they've oriented.
+  useEffect(() => { setMode("simple"); }, [level.id, setMode]);
 
   useEffect(() => {
     // Auto-clean layout on first load of every level — uses the same BFS
@@ -129,9 +134,23 @@ export function Canvas({ level, projectId, onLevelEdit, readOnly = false }: Canv
     const cleaned = autoLayout(level.nodes, level.edges, mode === "detailed");
     setNodes(cleaned);
     setEdges(level.edges);
-    // Slightly generous padding so the graph breathes
-    setTimeout(() => fitView({ padding: 0.22, duration: 400 }), 60);
+    setTimeout(() => fitView({ padding: 0.1, duration: 400 }), 60);
   }, [level.id, level.nodes, level.edges, setNodes, setEdges, fitView, mode]);
+
+  // Zoom shortcuts: Shift+0 fit · Shift+1 100% · Shift+2 50% · Shift+3 25%
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return;
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable)) return;
+      if (e.key === ")") { e.preventDefault(); fitView({ padding: 0.1, duration: 300 }); }
+      else if (e.key === "!") { e.preventDefault(); zoomTo(1, { duration: 300 }); }
+      else if (e.key === "@") { e.preventDefault(); zoomTo(0.5, { duration: 300 }); }
+      else if (e.key === "#") { e.preventDefault(); zoomTo(0.25, { duration: 300 }); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [fitView, zoomTo]);
 
   // ─── Broadcast edits up to App (for save) ───────────────────────────────
   // Debounced so we don't fire on every drag pixel. App handles save itself
@@ -531,12 +550,13 @@ export function Canvas({ level, projectId, onLevelEdit, readOnly = false }: Canv
       setSequenceNodeIndex(i);
 
       const isQuick = sequenceQuickModeRef.current;
-      // Crossfade window: 4.5s target, snapped to bars. Suppress for the very
-      // last track (nothing to crossfade into) and for Quick mode (Transition
+      // Crossfade window: ~6s target, snapped to nearest whole bar at the
+      // track's BPM so blends sit on a downbeat. Suppress for the last
+      // track (nothing to crossfade into) and for Quick mode (Transition
       // Check is meant to expose seams, not blend them).
       const isLast = i === playOrder.length - 1;
       const wantCrossfade = !isQuick && !isLast;
-      const crossfadeSec = wantCrossfade ? snapCrossfadeSec(4.5, bpm) : 0;
+      const crossfadeSec = wantCrossfade ? snapCrossfadeSec(6.0, bpm) : 0;
 
       const actualDurationMs = await auditionAsset({
         id: n.id,
@@ -667,7 +687,9 @@ export function Canvas({ level, projectId, onLevelEdit, readOnly = false }: Canv
         edgesReconnectable={!readOnly}
         nodeTypes={nodeTypes}
         fitView
-        fitViewOptions={{ padding: 0.15 }}
+        fitViewOptions={{ padding: 0.1 }}
+        minZoom={0.1}
+        maxZoom={4}
         defaultEdgeOptions={{ animated: true, style: { stroke: "#3a3a5c", strokeWidth: 2 } }}
         selectionOnDrag={!readOnly}
         selectionMode={SelectionMode.Partial}
@@ -738,7 +760,7 @@ export function Canvas({ level, projectId, onLevelEdit, readOnly = false }: Canv
             if (n.type === "event") return "#e94560";
             return "#0f3460";
           }}
-          maskColor="rgba(13, 13, 26, 0.85)"
+          maskColor="rgba(40, 40, 60, 0.7)"
           className="!bg-[#0d0d1a] !border-canvas-accent !rounded-lg"
         />}
         {/* Transport bar */}

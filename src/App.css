@@ -20,3 +20,23 @@
   --c-muted: 136 146 164;
   --c-accent-alt: 168 85 247;
 }
+
+/* ─── SectionHint glow ───────────────────────────────────────────────────
+ * Soft cyan ring breathing around an unseen UI region. Used by
+ * <SectionHint id="..."> wrapper. prefers-reduced-motion swaps the
+ * pulse for a static ring so it stays accessible.
+ */
+@keyframes sc-hint-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(var(--c-highlight) / 0); }
+  50%      { box-shadow: 0 0 0 6px rgb(var(--c-highlight) / 0.45); }
+}
+.sc-hint-glow {
+  border-radius: 8px;
+  animation: sc-hint-pulse 2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-hint-glow {
+    animation: none;
+    box-shadow: 0 0 0 2px rgb(var(--c-highlight) / 0.5);
+  }
+}

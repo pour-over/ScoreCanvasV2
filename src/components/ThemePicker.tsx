@@ -1,9 +1,6 @@
 /**
- * ThemePicker — small dropdown in the TopBar that swaps the entire app's
- * color palette between Score Canvas (default) and 7 DAW-inspired alternates.
- *
- * Theme labels are descriptive nods to recognizable audio tools — not
- * affiliations. Color palettes themselves aren't copyrightable.
+ * ThemePicker — TopBar dropdown that swaps the app's color palette across
+ * four presets: Dark (default), Light, SUPER DARK, BRIGHT AS FUCK.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -40,17 +37,17 @@ export function ThemePicker() {
           <span className="w-2 h-2 rounded-sm bg-canvas-surface" />
           <span className="w-2 h-2 rounded-sm bg-canvas-highlight" />
         </span>
-        <span className="hidden md:inline truncate max-w-[90px]">{current.label}</span>
+        <span className="hidden md:inline truncate max-w-[90px]">Theme</span>
         <svg width="8" height="5" viewBox="0 0 8 5" fill="currentColor" className={`transition-transform ${open ? "rotate-180" : ""}`}>
           <path d="M0 0l4 5 4-5z" />
         </svg>
       </button>
 
       {open && (
-        <div className="absolute top-full right-0 mt-1 w-64 bg-[#0d0d1a] border border-canvas-accent rounded-lg shadow-2xl z-50 overflow-hidden">
+        <div className="absolute top-full right-0 mt-1 w-72 bg-canvas-surface border border-canvas-accent rounded-lg shadow-2xl z-50 overflow-hidden">
           <div className="px-3 py-2 border-b border-canvas-accent/50">
             <div className="text-[9px] font-mono uppercase tracking-wider text-canvas-muted">Theme</div>
-            <div className="text-[10px] text-canvas-muted/70 italic">Color nods to tools you might recognize.</div>
+            <div className="text-[10px] text-canvas-muted/70 italic">{current.label} · {current.tagline}</div>
           </div>
           <div className="max-h-80 overflow-y-auto">
             {THEMES.map((t) => {

@@ -32,13 +32,19 @@ export interface GameProject {
 
 // ─── Import project data ────────────────────────────────────────────────────
 
+import { helloProject } from "./helloProject";
 import { journey2Levels } from "./levels";
 import { bloodborne2Levels } from "./bloodborne2";
 import { codProject, meditationProject, custodialProject, spreadsheetProject } from "./moreProjects";
 
 // ─── Project registry ───────────────────────────────────────────────────────
+//
+// helloProject is the default first-load demo. The fuller examples follow,
+// re-tagged as "Examples" in the sidebar so first-time visitors see Hello
+// instead of a 14-node graph.
 
 export const projects: GameProject[] = [
+  helloProject,
   {
     id: "journey-2",
     name: "WOVEN: SCARVES OF DESTINY",

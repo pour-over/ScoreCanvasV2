@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { Node, Edge } from "@xyflow/react";
 import { ReactFlowProvider } from "@xyflow/react";
 import { Canvas } from "./components/Canvas";
@@ -8,6 +8,8 @@ import { ProjectAssets } from "./components/ProjectAssets";
 import { ExportModal } from "./components/ExportModal";
 import { StatusReport } from "./components/StatusReport";
 import { GameTutorial, hasTutorialBeenSeen } from "./components/GameTutorial";
+import { PostSigninTutorial, hasPostSigninTutorialBeenSeen } from "./components/PostSigninTutorial";
+import { ProTutorial } from "./components/ProTutorial";
 import { WwiseSyncPanel } from "./components/WwiseSyncPanel";
 import { SeguePanel } from "./components/SeguePanel";
 import { GenerationModal, type GenerationRequestEvent } from "./components/GenerationModal";
@@ -15,6 +17,7 @@ import { DataImportPanel } from "./components/DataImportPanel";
 import { AuthModal } from "./components/AuthModal";
 import { ViewModeProvider } from "./context/ViewModeContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { HelpModeProvider } from "./context/HelpModeContext";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import { Landing } from "./components/Landing";
 import { stopAudition } from "./audio/synth";
@@ -76,6 +79,9 @@ function ScoreCanvasApp() {
   const [showExport, setShowExport] = useState(false);
   const [showStatusReport, setShowStatusReport] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showPostSigninTutorial, setShowPostSigninTutorial] = useState(false);
+  const [showProTutorial, setShowProTutorial] = useState(false);
+  const prevUserIdRef = useRef<string | null>(null);
   const [showWwiseSync, setShowWwiseSync] = useState(false);
   const [showSegue, setShowSegue] = useState(false);
   const [generationRequest, setGenerationRequest] = useState<GenerationRequestEvent | null>(null);
@@ -118,6 +124,22 @@ function ScoreCanvasApp() {
       return () => clearTimeout(t);
     }
   }, []);
+
+  // ─── Auto-show PostSigninTutorial on first sign-in ─────────────────────
+  // Watches the auth user object: when it transitions from null → defined
+  // (a fresh sign-in this session), fires the post-signin walkthrough once
+  // per browser. Doesn't fire on session resume — prevUserIdRef seeds with
+  // whatever's in user on mount, so a refreshed page that already has a
+  // session does NOT trigger the tutorial again.
+  useEffect(() => {
+    const currentId = user?.id ?? null;
+    const previousId = prevUserIdRef.current;
+    prevUserIdRef.current = currentId;
+    if (previousId === null && currentId !== null && !hasPostSigninTutorialBeenSeen()) {
+      const t = setTimeout(() => setShowPostSigninTutorial(true), 600);
+      return () => clearTimeout(t);
+    }
+  }, [user]);
 
   // ─── Share-token detection: ?share={token} → load read-only ───────────
   // Runs once on mount. If present, takes precedence over hash routing.
@@ -324,6 +346,8 @@ function ScoreCanvasApp() {
         onOpenWwiseSync={() => setShowWwiseSync(true)}
         onOpenSegue={() => setShowSegue(true)}
         userEmail={user?.email ?? null}
+        userName={(user?.user_metadata?.name as string | undefined) ?? null}
+        userCreatedAt={user?.created_at ?? null}
         onSignIn={() => { setAuthReason(null); setShowAuth(true); }}
         onSignOut={signOut}
         onSave={handleSave}
@@ -378,6 +402,12 @@ function ScoreCanvasApp() {
       )}
       {showStatusReport && (
         <StatusReport levels={currentProject.levels} onClose={() => setShowStatusReport(false)} />
+      )}
+      {showPostSigninTutorial && (
+        <PostSigninTutorial onDismiss={() => setShowPostSigninTutorial(false)} />
+      )}
+      {showProTutorial && (
+        <ProTutorial onDismiss={() => setShowProTutorial(false)} />
       )}
       {showTutorial && (
         <GameTutorial onDismiss={() => setShowTutorial(false)} />
@@ -439,9 +469,11 @@ export default function App() {
 
   return (
     <ThemeProvider>
-      <AuthProvider>
-        {view === "app" ? <ScoreCanvasApp /> : <Landing />}
-      </AuthProvider>
+      <HelpModeProvider>
+        <AuthProvider>
+          {view === "app" ? <ScoreCanvasApp /> : <Landing />}
+        </AuthProvider>
+      </HelpModeProvider>
     </ThemeProvider>
   );
 }

@@ -1,5 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { SegueDemoGallery } from "./SegueDemoGallery";
+import { projects as demoProjects } from "../data/projects";
+
+// Short-name list for the demo-roster blurb. Strips colons and grabs the
+// first ~12 chars of each title so the copy reads as a list, not a wall.
+const exampleProjects = demoProjects.slice(1).map((p) => {
+  const head = p.name.split(":")[0].trim();
+  return head.length > 16 ? head.slice(0, 14) + "…" : head;
+});
+const exampleHeadline = exampleProjects.slice(0, 3).join(", ")
+  + (exampleProjects.length > 3 ? ", more" : "");
 
 // ─── Animated node graph mock — mirrors real-app node anatomy ───────────────
 
@@ -470,7 +480,7 @@ export function Landing() {
               tagline="Step Three"
               icon="◐"
               color="#e94560"
-              desc="Send a share link to your VP, producer, or composer. They open one URL, walk the graph, leave comments on specific nodes. No audio call required."
+              desc="Send a share link to your VP, producer, or composer. They open one URL and walk the graph — every node has director notes already attached. No audio call required."
             />
             <VerbCard
               verb="Ship"
@@ -510,9 +520,9 @@ export function Landing() {
               <div className="text-[10px] text-canvas-muted/60 mt-1">(one shareable graph instead)</div>
             </div>
             <div>
-              <div className="text-4xl font-black text-canvas-highlight mb-2">6</div>
+              <div className="text-4xl font-black text-canvas-highlight mb-2">{demoProjects.length}</div>
               <div className="text-xs font-mono uppercase tracking-wider text-canvas-muted">Full demo projects shipping now</div>
-              <div className="text-[10px] text-canvas-muted/60 mt-1">Woven, Dark Meowls II, Strikecore, more</div>
+              <div className="text-[10px] text-canvas-muted/60 mt-1">Hello tutorial · {exampleHeadline}</div>
             </div>
           </div>
         </div>
@@ -758,7 +768,7 @@ export function Landing() {
               </div>
               <h3 className="text-sm font-bold text-canvas-text mb-1.5">Team Workspaces</h3>
               <p className="text-xs text-canvas-muted leading-relaxed">
-                Multiple games per studio, each with its own roster. Multi-cursor co-editing (the foundation already ships in V2 via Yjs). Comment threads on nodes, like a design tool.
+                Multiple games per studio, each with its own roster. Multi-cursor co-editing on the canvas. Comment threads on nodes, like a design tool.
               </p>
             </div>
 
@@ -802,7 +812,7 @@ export function Landing() {
               icon="≡"
               title="Stem-Level Control"
               color="#a855f7"
-              desc="Mute, solo, fade, and trim individual stems per asset. Prototype 'melody drops out when boss hits 50%' before your composer writes it."
+              desc="Mute and solo individual stems while you preview a cue. Prototype 'melody drops out when boss hits 50%' before your composer writes it."
             />
             <FeatureCard
               icon="▶"
@@ -826,7 +836,7 @@ export function Landing() {
               icon="⎔"
               title="Multi-Project Canvas"
               color="#4ecdc4"
-              desc="Switch between projects and levels instantly. Lock to a single game for single-game teams. 6 complete demo projects shipping now."
+              desc={`Switch between projects and levels instantly. Lock to a single game for single-game teams. ${demoProjects.length} demo projects ship now — a tutorial-grade Hello plus full game-themed examples.`}
             />
           </div>
         </div>
