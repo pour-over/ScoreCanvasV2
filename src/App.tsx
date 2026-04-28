@@ -17,6 +17,7 @@ import { DataImportPanel } from "./components/DataImportPanel";
 import { AuthModal } from "./components/AuthModal";
 import { ViewModeProvider } from "./context/ViewModeContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { HelpModeProvider } from "./context/HelpModeContext";
 import { AuthProvider, useAuth } from "./auth/AuthContext";
 import { Landing } from "./components/Landing";
 import { stopAudition } from "./audio/synth";
@@ -468,9 +469,11 @@ export default function App() {
 
   return (
     <ThemeProvider>
-      <AuthProvider>
-        {view === "app" ? <ScoreCanvasApp /> : <Landing />}
-      </AuthProvider>
+      <HelpModeProvider>
+        <AuthProvider>
+          {view === "app" ? <ScoreCanvasApp /> : <Landing />}
+        </AuthProvider>
+      </HelpModeProvider>
     </ThemeProvider>
   );
 }

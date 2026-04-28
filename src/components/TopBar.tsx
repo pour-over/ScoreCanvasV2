@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useViewMode } from "../context/ViewModeContext";
 import { ThemePicker } from "./ThemePicker";
 import { AccountChip } from "./AccountChip";
+import { SectionHint } from "./SectionHints";
 
 interface TopBarProps {
   projectName: string;
@@ -313,18 +314,32 @@ export function TopBar({
       <div className="w-px h-5 bg-canvas-accent flex-shrink-0" />
 
       {/* Theme picker */}
-      <ThemePicker />
+      <SectionHint
+        id="theme-picker"
+        steps={[
+          { title: "Theme", body: "Pick the visual theme — Dark (default), Light, SUPER DARK, or BRIGHT AS FUCK. Persists across sessions." },
+        ]}
+      >
+        <ThemePicker />
+      </SectionHint>
 
       <div className="w-px h-5 bg-canvas-accent flex-shrink-0" />
 
       {/* Auth: signed-in account chip OR Sign In button */}
       {userEmail ? (
-        <AccountChip
-          email={userEmail}
-          name={userName ?? null}
-          createdAt={userCreatedAt ?? null}
-          onSignOut={onSignOut}
-        />
+        <SectionHint
+          id="account-chip"
+          steps={[
+            { title: "Your account", body: "Click your initials to see your email, member-since date, rename your display name, or sign out." },
+          ]}
+        >
+          <AccountChip
+            email={userEmail}
+            name={userName ?? null}
+            createdAt={userCreatedAt ?? null}
+            onSignOut={onSignOut}
+          />
+        </SectionHint>
       ) : (
         <button
           onClick={onSignIn}
