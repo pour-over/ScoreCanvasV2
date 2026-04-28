@@ -19,7 +19,7 @@ import { AuthProvider, useAuth } from "./auth/AuthContext";
 import { Landing } from "./components/Landing";
 import { stopAudition } from "./audio/synth";
 import { projects as demoProjects } from "./data/projects";
-import type { GameProject, GameLevel } from "./data/projects";
+import type { GameProject, GameLevel, MusicAsset } from "./data/projects";
 import { saveProject, loadProject, listMyProjects, forkProject, type ProjectSummary } from "./lib/projects";
 import { resolveShareToken } from "./lib/share";
 import { ShareModal } from "./components/ShareModal";
@@ -204,6 +204,34 @@ function ScoreCanvasApp() {
     }));
   }, []);
 
+  // ─── ProjectAssets → App: append a freshly-uploaded asset to a level ────
+  // The actual save fires from the same setCurrentProject closure via the
+  // existing autosave-on-save flow; we also fire saveProject() immediately
+  // because uploads are too important to wait on debounce.
+  const handleAddAsset = useCallback((levelId: string, asset: MusicAsset) => {
+    setCurrentProject((prev) => {
+      const next: GameProject = {
+        ...prev,
+        levels: prev.levels.map((l) =>
+          l.id === levelId ? { ...l, assets: [...l.assets, asset] } : l
+        ) as GameLevel[],
+      };
+      // Persist right away so a refresh doesn't lose the upload reference.
+      // Fire-and-forget: any failure will bubble back via savingState handlers.
+      if (configured && user && savedProjectId) {
+        void saveProject({
+          id: savedProjectId,
+          name: next.name,
+          subtitle: next.subtitle,
+          levels: next.levels,
+        }).then(() => setSavedAt(new Date())).catch((err) => {
+          console.error("Failed to persist uploaded asset:", err);
+        });
+      }
+      return next;
+    });
+  }, [configured, user, savedProjectId]);
+
   // ─── Save (manual; auto-save lands in Phase 5) ─────────────────────────
   const handleSave = useCallback(async () => {
     if (!configured) {
@@ -333,7 +361,17 @@ function ScoreCanvasApp() {
         </ReactFlowProvider>
       </div>
       {showProjectAssets && (
-        <ProjectAssets levels={currentProject.levels} projectName={currentProject.name} onClose={() => setShowProjectAssets(false)} />
+        <ProjectAssets
+          levels={currentProject.levels}
+          projectName={currentProject.name}
+          onClose={() => setShowProjectAssets(false)}
+          readOnly={isReadOnly}
+          isUserProject={isUserProject}
+          userId={user?.id ?? null}
+          projectId={savedProjectId}
+          onAddAsset={handleAddAsset}
+          defaultUploadLevelId={selectedLevelId}
+        />
       )}
       {showExport && currentLevel && (
         <ExportModal level={currentLevel} onClose={() => setShowExport(false)} />

@@ -1,13 +1,56 @@
-import { useState, type DragEvent } from "react";
+import { useRef, useState, type DragEvent, type ChangeEvent } from "react";
+import { nanoid } from "nanoid";
 import type { GameLevel, MusicAsset } from "../data/projects";
 import { stopAudition, type AssetCategory } from "../audio/synth";
 import { priorityAuditionAsset } from "../audio/coordinator";
+import { supabase, AUDIO_BUCKET, isConfigured } from "../lib/supabase";
 import { Waveform } from "./Waveform";
 
 interface ProjectAssetsProps {
   levels: GameLevel[];
   projectName: string;
   onClose: () => void;
+  /** True when viewing a shared read-only link or a demo project — hide upload affordance */
+  readOnly?: boolean;
+  /** True when this is a user-owned project (forked or saved) — uploads only land here */
+  isUserProject?: boolean;
+  /** Auth user id; required to build the storage path */
+  userId?: string | null;
+  /** Project UUID once saved; required so the upload path namespaces under the project */
+  projectId?: string | null;
+  /** Push a freshly-uploaded asset onto a level. App owns the project state. */
+  onAddAsset?: (levelId: string, asset: MusicAsset) => void;
+  /** Default level to receive new uploads when the user hasn't chosen one. */
+  defaultUploadLevelId?: string;
+}
+
+const MAX_UPLOAD_BYTES = 25 * 1024 * 1024; // 25 MB — Supabase free-tier per-file cap
+const SAFE_FILENAME_RE = /[^a-zA-Z0-9._-]+/g;
+
+function sanitizeFilename(name: string): string {
+  return name.replace(SAFE_FILENAME_RE, "_").slice(0, 80);
+}
+
+function formatDuration(sec: number): string {
+  const m = Math.floor(sec / 60);
+  const s = Math.round(sec % 60);
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+/** Probe an audio file's duration via a hidden HTMLAudioElement. */
+function probeDurationSec(file: File): Promise<number> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const audio = new Audio();
+    const cleanup = () => URL.revokeObjectURL(url);
+    audio.addEventListener("loadedmetadata", () => {
+      const sec = isFinite(audio.duration) ? audio.duration : 0;
+      cleanup();
+      resolve(sec);
+    });
+    audio.addEventListener("error", () => { cleanup(); resolve(0); });
+    audio.src = url;
+  });
 }
 
 const categoryColors: Record<string, string> = {
@@ -18,12 +61,88 @@ const categoryIcons: Record<string, string> = {
   intro: "▶", loop: "↻", ending: "◼", transition: "→", stinger: "⚡", layer: "≡", ambient: "◎",
 };
 
-export function ProjectAssets({ levels, projectName, onClose }: ProjectAssetsProps) {
+export function ProjectAssets({
+  levels,
+  projectName,
+  onClose,
+  readOnly = false,
+  isUserProject = false,
+  userId = null,
+  projectId = null,
+  onAddAsset,
+  defaultUploadLevelId,
+}: ProjectAssetsProps) {
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [levelFilter, setLevelFilter] = useState<string>("all");
+
+  // ─── Upload state ────────────────────────────────────────────────────────
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadState, setUploadState] = useState<
+    | { kind: "idle" }
+    | { kind: "uploading"; filename: string }
+    | { kind: "success"; filename: string }
+    | { kind: "error"; message: string }
+  >({ kind: "idle" });
+
+  const canUpload = !readOnly && isUserProject && isConfigured && !!userId && !!projectId && !!onAddAsset;
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChosen = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // reset so picking the same file again still fires
+    if (!file) return;
+    if (!canUpload || !userId || !projectId || !onAddAsset) {
+      setUploadState({ kind: "error", message: "Upload isn't available right now." });
+      return;
+    }
+    if (!file.type.startsWith("audio/")) {
+      setUploadState({ kind: "error", message: `Not an audio file (${file.type || "unknown"}).` });
+      setTimeout(() => setUploadState({ kind: "idle" }), 4000);
+      return;
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      const mb = (file.size / 1024 / 1024).toFixed(1);
+      setUploadState({ kind: "error", message: `File is ${mb} MB — limit is 25 MB.` });
+      setTimeout(() => setUploadState({ kind: "idle" }), 5000);
+      return;
+    }
+
+    setUploadState({ kind: "uploading", filename: file.name });
+    try {
+      const safe = sanitizeFilename(file.name);
+      const path = `${userId}/${projectId}/${nanoid(6)}-${safe}`;
+      const [{ error: uploadErr }, durationSec] = await Promise.all([
+        supabase.storage.from(AUDIO_BUCKET).upload(path, file, { upsert: false, contentType: file.type }),
+        probeDurationSec(file),
+      ]);
+      if (uploadErr) throw uploadErr;
+      const targetLevelId = defaultUploadLevelId ?? levels[0]?.id;
+      if (!targetLevelId) throw new Error("No level to attach the asset to.");
+      const asset: MusicAsset = {
+        id: `up-${nanoid(8)}`,
+        filename: file.name.replace(/\.[^.]+$/, ""),
+        category: "loop",       // sensible default; user can re-edit
+        duration: formatDuration(durationSec),
+        bpm: 120,               // default; SEGUE Analyze & Tag fills these in later
+        key: "C",
+        stems: [],
+        audioFile: `supabase://${path}`,
+      };
+      onAddAsset(targetLevelId, asset);
+      setUploadState({ kind: "success", filename: file.name });
+      setTimeout(() => setUploadState({ kind: "idle" }), 3500);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Upload failed.";
+      setUploadState({ kind: "error", message: msg });
+      setTimeout(() => setUploadState({ kind: "idle" }), 6000);
+    }
+  };
 
   const allAssets = levels.flatMap((lvl) =>
     lvl.assets.map((a) => ({ ...a, levelName: lvl.name, levelId: lvl.id }))
@@ -101,6 +220,32 @@ export function ProjectAssets({ levels, projectName, onClose }: ProjectAssetsPro
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {canUpload && (
+              <>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="audio/*"
+                  onChange={handleFileChosen}
+                  className="hidden"
+                />
+                <button
+                  onClick={handleUploadClick}
+                  disabled={uploadState.kind === "uploading"}
+                  title="Upload an MP3 / WAV from your machine (max 25 MB)"
+                  className="text-[10px] font-bold text-canvas-highlight hover:text-white px-2.5 py-1 rounded bg-canvas-highlight/20 border border-canvas-highlight/40 hover:bg-canvas-highlight/40 transition-colors flex items-center gap-1.5 disabled:opacity-60"
+                >
+                  {uploadState.kind === "uploading" ? (
+                    <>
+                      <span className="inline-block w-3 h-3 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                      Uploading…
+                    </>
+                  ) : (
+                    <>+ Upload Asset</>
+                  )}
+                </button>
+              </>
+            )}
             {playingId && (
               <button onClick={handleStop} className="text-[10px] font-bold text-red-400 hover:text-red-300 px-2.5 py-1 rounded bg-red-900/30 border border-red-500/30">
                 ⏹ STOP ALL
@@ -109,6 +254,20 @@ export function ProjectAssets({ levels, projectName, onClose }: ProjectAssetsPro
             <button onClick={onClose} className="text-canvas-muted hover:text-canvas-text text-lg leading-none px-2">&times;</button>
           </div>
         </div>
+
+        {/* Upload toast strip */}
+        {uploadState.kind === "success" && (
+          <div className="px-5 py-2 border-b border-green-500/30 bg-green-900/20 text-[11px] text-green-300 flex items-center gap-2">
+            <span className="text-green-400">✓</span>
+            <span>Uploaded <span className="font-mono">{uploadState.filename}</span> — added to {levels.find((l) => l.id === defaultUploadLevelId)?.name ?? levels[0]?.name ?? "the project"}.</span>
+          </div>
+        )}
+        {uploadState.kind === "error" && (
+          <div className="px-5 py-2 border-b border-red-500/30 bg-red-900/20 text-[11px] text-red-300 flex items-center gap-2">
+            <span className="text-red-400">✕</span>
+            <span>{uploadState.message}</span>
+          </div>
+        )}
 
         {/* Filters */}
         <div className="flex items-center gap-3 px-5 py-2 border-b border-canvas-accent/50 flex-wrap">
