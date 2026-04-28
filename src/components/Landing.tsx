@@ -1,5 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { SegueDemoGallery } from "./SegueDemoGallery";
+import { projects as demoProjects } from "../data/projects";
+
+// Short-name list for the demo-roster blurb. Strips colons and grabs the
+// first ~12 chars of each title so the copy reads as a list, not a wall.
+const exampleProjects = demoProjects.slice(1).map((p) => {
+  const head = p.name.split(":")[0].trim();
+  return head.length > 16 ? head.slice(0, 14) + "…" : head;
+});
+const exampleHeadline = exampleProjects.slice(0, 3).join(", ")
+  + (exampleProjects.length > 3 ? ", more" : "");
 
 // ─── Animated node graph mock — mirrors real-app node anatomy ───────────────
 
@@ -510,9 +520,9 @@ export function Landing() {
               <div className="text-[10px] text-canvas-muted/60 mt-1">(one shareable graph instead)</div>
             </div>
             <div>
-              <div className="text-4xl font-black text-canvas-highlight mb-2">6</div>
+              <div className="text-4xl font-black text-canvas-highlight mb-2">{demoProjects.length}</div>
               <div className="text-xs font-mono uppercase tracking-wider text-canvas-muted">Full demo projects shipping now</div>
-              <div className="text-[10px] text-canvas-muted/60 mt-1">Woven, Dark Meowls II, Strikecore, more</div>
+              <div className="text-[10px] text-canvas-muted/60 mt-1">Hello tutorial · {exampleHeadline}</div>
             </div>
           </div>
         </div>
@@ -826,7 +836,7 @@ export function Landing() {
               icon="⎔"
               title="Multi-Project Canvas"
               color="#4ecdc4"
-              desc="Switch between projects and levels instantly. Lock to a single game for single-game teams. 6 complete demo projects shipping now."
+              desc={`Switch between projects and levels instantly. Lock to a single game for single-game teams. ${demoProjects.length} demo projects ship now — a tutorial-grade Hello plus full game-themed examples.`}
             />
           </div>
         </div>
