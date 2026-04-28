@@ -480,7 +480,7 @@ export function Landing() {
               tagline="Step Three"
               icon="◐"
               color="#e94560"
-              desc="Send a share link to your VP, producer, or composer. They open one URL, walk the graph, leave comments on specific nodes. No audio call required."
+              desc="Send a share link to your VP, producer, or composer. They open one URL and walk the graph — every node has director notes already attached. No audio call required."
             />
             <VerbCard
               verb="Ship"
@@ -768,7 +768,7 @@ export function Landing() {
               </div>
               <h3 className="text-sm font-bold text-canvas-text mb-1.5">Team Workspaces</h3>
               <p className="text-xs text-canvas-muted leading-relaxed">
-                Multiple games per studio, each with its own roster. Multi-cursor co-editing (the foundation already ships in V2 via Yjs). Comment threads on nodes, like a design tool.
+                Multiple games per studio, each with its own roster. Multi-cursor co-editing on the canvas. Comment threads on nodes, like a design tool.
               </p>
             </div>
 
@@ -812,7 +812,7 @@ export function Landing() {
               icon="≡"
               title="Stem-Level Control"
               color="#a855f7"
-              desc="Mute, solo, fade, and trim individual stems per asset. Prototype 'melody drops out when boss hits 50%' before your composer writes it."
+              desc="Mute and solo individual stems while you preview a cue. Prototype 'melody drops out when boss hits 50%' before your composer writes it."
             />
             <FeatureCard
               icon="▶"
