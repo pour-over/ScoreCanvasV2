@@ -120,7 +120,12 @@ export function Canvas({ level, projectId, onLevelEdit, readOnly = false }: Canv
   const [nodes, setNodes, onNodesChange] = useNodesState(level.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(level.edges);
   const { screenToFlowPosition, fitView, zoomTo } = useReactFlow();
-  const { mode, toggle: toggleViewMode } = useViewMode();
+  const { mode, toggle: toggleViewMode, setMode } = useViewMode();
+
+  // Reset to Simple mode on every level change. First impression of a level
+  // should always be the uncluttered view; users can toggle to Detailed
+  // after they've oriented.
+  useEffect(() => { setMode("simple"); }, [level.id, setMode]);
 
   useEffect(() => {
     // Auto-clean layout on first load of every level — uses the same BFS
@@ -545,12 +550,13 @@ export function Canvas({ level, projectId, onLevelEdit, readOnly = false }: Canv
       setSequenceNodeIndex(i);
 
       const isQuick = sequenceQuickModeRef.current;
-      // Crossfade window: 4.5s target, snapped to bars. Suppress for the very
-      // last track (nothing to crossfade into) and for Quick mode (Transition
+      // Crossfade window: ~6s target, snapped to nearest whole bar at the
+      // track's BPM so blends sit on a downbeat. Suppress for the last
+      // track (nothing to crossfade into) and for Quick mode (Transition
       // Check is meant to expose seams, not blend them).
       const isLast = i === playOrder.length - 1;
       const wantCrossfade = !isQuick && !isLast;
-      const crossfadeSec = wantCrossfade ? snapCrossfadeSec(4.5, bpm) : 0;
+      const crossfadeSec = wantCrossfade ? snapCrossfadeSec(6.0, bpm) : 0;
 
       const actualDurationMs = await auditionAsset({
         id: n.id,
