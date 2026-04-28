@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useViewMode } from "../context/ViewModeContext";
 import { ThemePicker } from "./ThemePicker";
+import { AccountChip } from "./AccountChip";
 
 interface TopBarProps {
   projectName: string;
@@ -17,6 +18,8 @@ interface TopBarProps {
   onOpenSegue?: () => void;
   // Auth + persistence
   userEmail: string | null;
+  userName?: string | null;
+  userCreatedAt?: string | null;
   onSignIn: () => void;
   onSignOut: () => Promise<void> | void;
   onSave: () => Promise<void> | void;
@@ -60,6 +63,8 @@ export function TopBar({
   onOpenWwiseSync,
   onOpenSegue,
   userEmail,
+  userName,
+  userCreatedAt,
   onSignIn,
   onSignOut,
   onSave,
@@ -75,18 +80,83 @@ export function TopBar({
   const isSimple = mode === "simple";
   const savedRelative = useRelativeTime(savedAt);
 
+  const [projectInfoOpen, setProjectInfoOpen] = useState(false);
+  const projectInfoRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!projectInfoOpen) return;
+    const onMouse = (e: MouseEvent) => {
+      const t = e.target as Node | null;
+      if (projectInfoRef.current && t && !projectInfoRef.current.contains(t)) {
+        // Allow clicks on the project-name button itself to toggle, not close.
+        const btn = projectInfoRef.current.parentElement?.querySelector("button");
+        if (btn && t && btn.contains(t)) return;
+        setProjectInfoOpen(false);
+      }
+    };
+    window.addEventListener("mousedown", onMouse);
+    return () => window.removeEventListener("mousedown", onMouse);
+  }, [projectInfoOpen]);
+
   return (
     <header className="h-11 bg-[#0d0d1a] border-b border-canvas-accent flex items-center px-4 gap-4 shrink-0">
-      {/* Logo + Project */}
-      <div className="flex items-center gap-2 min-w-0">
+      {/* Logo + Project (clickable for project info popover) */}
+      <div className="flex items-center gap-2 min-w-0 relative">
         <div className="w-6 h-6 rounded bg-canvas-highlight flex items-center justify-center flex-shrink-0">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-white">
             <path d="M2 4h3v6H2zM6 2h2v10H6zM9 5h3v5H9z" fill="currentColor" opacity="0.9"/>
           </svg>
         </div>
-        <span className="text-sm font-bold text-canvas-text tracking-tight truncate max-w-[260px]">{projectName}</span>
+        <button
+          onClick={() => setProjectInfoOpen((o) => !o)}
+          title="Project info"
+          className="text-sm font-bold text-canvas-text tracking-tight truncate max-w-[260px] hover:text-canvas-highlight transition-colors"
+        >
+          {projectName}
+        </button>
         {!isUserProject && (
           <span className="text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-canvas-accent/40 text-canvas-muted border border-canvas-accent flex-shrink-0">demo</span>
+        )}
+        {projectInfoOpen && (
+          <div ref={projectInfoRef} className="absolute top-full left-0 mt-1 w-72 bg-canvas-surface border border-canvas-accent rounded-lg shadow-2xl z-50 overflow-hidden">
+            <div className="px-4 py-3 border-b border-canvas-accent/50">
+              <div className="text-[9px] font-mono uppercase tracking-wider text-canvas-muted">Project</div>
+              <div className="text-[13px] font-bold text-canvas-text mt-0.5 truncate">{projectName}</div>
+            </div>
+            <div className="px-4 py-2 border-b border-canvas-accent/40">
+              <div className="text-[9px] font-mono uppercase tracking-wider text-canvas-muted">Current level</div>
+              <div className="text-[12px] text-canvas-text mt-0.5 truncate">{levelName}</div>
+              {levelSubtitle && <div className="text-[10px] text-canvas-muted italic truncate mt-0.5">{levelSubtitle}</div>}
+            </div>
+            <div className="px-4 py-2 border-b border-canvas-accent/40 grid grid-cols-3 gap-2">
+              <div>
+                <div className="text-[9px] font-mono uppercase text-canvas-muted">Nodes</div>
+                <div className="text-[12px] font-bold text-canvas-text">{nodeCount}</div>
+              </div>
+              <div>
+                <div className="text-[9px] font-mono uppercase text-canvas-muted">Edges</div>
+                <div className="text-[12px] font-bold text-canvas-text">{edgeCount}</div>
+              </div>
+              <div>
+                <div className="text-[9px] font-mono uppercase text-canvas-muted">Assets</div>
+                <div className="text-[12px] font-bold text-canvas-text">{assetCount}</div>
+              </div>
+            </div>
+            {!readOnly && (
+              <div className="px-3 py-2">
+                {isUserProject ? (
+                  <div className="text-[10px] text-canvas-muted">
+                    {savedAt
+                      ? <>Last saved {savedRelative}</>
+                      : <>Unsaved — use Save in the toolbar</>}
+                  </div>
+                ) : (
+                  <div className="text-[10px] text-canvas-muted">
+                    Read-only demo. Fork to start editing your own copy.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         )}
       </div>
 
@@ -244,17 +314,14 @@ export function TopBar({
 
       <div className="w-px h-5 bg-canvas-accent flex-shrink-0" />
 
-      {/* Auth: Sign In or signed-in email + Sign Out */}
+      {/* Auth: signed-in account chip OR Sign In button */}
       {userEmail ? (
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono text-canvas-muted truncate max-w-[140px]" title={userEmail}>{userEmail}</span>
-          <button
-            onClick={onSignOut}
-            className="text-[10px] font-mono text-canvas-muted hover:text-canvas-text border border-canvas-accent rounded px-2 py-0.5"
-          >
-            Sign out
-          </button>
-        </div>
+        <AccountChip
+          email={userEmail}
+          name={userName ?? null}
+          createdAt={userCreatedAt ?? null}
+          onSignOut={onSignOut}
+        />
       ) : (
         <button
           onClick={onSignIn}

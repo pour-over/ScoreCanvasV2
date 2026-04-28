@@ -324,6 +324,8 @@ function ScoreCanvasApp() {
         onOpenWwiseSync={() => setShowWwiseSync(true)}
         onOpenSegue={() => setShowSegue(true)}
         userEmail={user?.email ?? null}
+        userName={(user?.user_metadata?.name as string | undefined) ?? null}
+        userCreatedAt={user?.created_at ?? null}
         onSignIn={() => { setAuthReason(null); setShowAuth(true); }}
         onSignOut={signOut}
         onSave={handleSave}
