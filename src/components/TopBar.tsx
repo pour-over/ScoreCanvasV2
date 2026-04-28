@@ -190,6 +190,7 @@ export function TopBar({
         {!readOnly && isUserProject && (
           <>
             <button
+              data-tour="save-btn"
               onClick={onSave}
               disabled={savingState === "saving"}
               title="Save this project"
@@ -203,6 +204,7 @@ export function TopBar({
               {savingState === "saving" ? "Saving..." : savingState === "error" ? "Retry save" : "Save"}
             </button>
             <button
+              data-tour="share-btn"
               onClick={onShare}
               title="Share a read-only link to this project"
               className="px-2.5 py-1 text-[11px] font-semibold rounded bg-canvas-accent/60 text-canvas-text border border-canvas-accent hover:bg-canvas-accent transition-colors flex items-center gap-1.5"
@@ -214,6 +216,7 @@ export function TopBar({
         )}
         {!readOnly && !isUserProject && (
           <button
+            data-tour="fork-btn"
             onClick={onFork}
             title="Fork this demo into your own editable project"
             className="px-2.5 py-1 text-[11px] font-semibold rounded bg-purple-900/30 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30 transition-colors flex items-center gap-1"

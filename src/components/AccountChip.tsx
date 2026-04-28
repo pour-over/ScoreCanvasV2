@@ -78,6 +78,7 @@ export function AccountChip({ email, name, createdAt, onSignOut }: AccountChipPr
   return (
     <div ref={ref} className="relative">
       <button
+        data-tour="account-chip"
         onClick={() => setOpen((o) => !o)}
         title={`${display} · ${email}`}
         className="flex items-center gap-2 pl-1 pr-2 py-0.5 rounded-full border border-canvas-accent text-canvas-text hover:border-canvas-highlight/60 transition-colors"

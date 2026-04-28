@@ -200,7 +200,7 @@ export function Sidebar({
       <div className="flex-1 overflow-y-auto scrollbar-thin">
         {/* My Projects — only when persistence is wired up; hidden in shared read-only view */}
         {!readOnly && (isSignedIn || myProjects.length > 0) && (
-          <>
+          <div data-tour="my-projects">
             <CollapsibleSection title="My Projects" count={myProjects.length}>
               {myProjects.length === 0 ? (
                 <div className="text-[10px] text-canvas-muted/70 italic px-2 py-2 leading-relaxed">
@@ -245,7 +245,7 @@ export function Sidebar({
               )}
             </CollapsibleSection>
             <div className="mx-3 border-t border-canvas-accent" />
-          </>
+          </div>
         )}
 
         {/* Levels */}
