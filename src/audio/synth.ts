@@ -10,8 +10,10 @@ import { supabase, AUDIO_BUCKET } from "../lib/supabase";
 
 let ctx: AudioContext | null = null;
 let masterGain: GainNode | null = null;
+let masterLimiter: DynamicsCompressorNode | null = null;
 let activeSources: AudioBufferSourceNode[] = [];
 let activeFileGains: GainNode[] = [];
+const activeFileGainCategories = new WeakMap<GainNode, AssetCategory>();
 let activeTimeouts: number[] = [];
 let isPlaying = false;
 let currentAssetId: string | null = null;
@@ -20,12 +22,80 @@ let volumeLevel = 0.6; // default 60%
 // Audio buffer cache to avoid re-fetching
 const bufferCache = new Map<string, AudioBuffer>();
 
+// Per-category shelf EQ — lazily created once per category and reused.
+// Loops get a soft de-mud, stingers get presence/clarity, intros high-pass
+// out subsonic rumble. Transparent for transitions and ambient layers.
+const categoryEQs = new Map<AssetCategory, AudioNode>();
+
+function makeCategoryEQ(ac: AudioContext, master: GainNode, category: AssetCategory): AudioNode {
+  // The "input" node is the first filter in the chain. We connect into it,
+  // route through the chain, terminate at master. For transparent categories
+  // we just return a passthrough GainNode at unity.
+  const input = ac.createGain();
+  input.gain.value = 1;
+
+  if (category === "loop" || category === "ambient" || category === "layer") {
+    const demud = ac.createBiquadFilter();
+    demud.type = "peaking";
+    demud.frequency.value = 320;
+    demud.Q.value = 0.9;
+    demud.gain.value = -2.5;
+    input.connect(demud);
+    demud.connect(master);
+  } else if (category === "stinger") {
+    const presence = ac.createBiquadFilter();
+    presence.type = "peaking";
+    presence.frequency.value = 5000;
+    presence.Q.value = 0.8;
+    presence.gain.value = 4;
+    const air = ac.createBiquadFilter();
+    air.type = "highshelf";
+    air.frequency.value = 12000;
+    air.gain.value = 3;
+    input.connect(presence);
+    presence.connect(air);
+    air.connect(master);
+  } else if (category === "intro" || category === "ending") {
+    const hp = ac.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = 50;
+    hp.Q.value = 0.7;
+    input.connect(hp);
+    hp.connect(master);
+  } else {
+    // transition — transparent
+    input.connect(master);
+  }
+  return input;
+}
+
+function getCategoryEQ(category: AssetCategory): AudioNode {
+  const ac = getCtx();
+  const master = getMaster();
+  let eq = categoryEQs.get(category);
+  if (!eq) {
+    eq = makeCategoryEQ(ac, master, category);
+    categoryEQs.set(category, eq);
+  }
+  return eq;
+}
+
 function getCtx(): AudioContext {
   if (!ctx) {
     ctx = new AudioContext();
     masterGain = ctx.createGain();
     masterGain.gain.value = volumeLevel;
-    masterGain.connect(ctx.destination);
+    // Master safety limiter — catches the rare hot-stack moment without
+    // coloring the mix at typical levels. Knee + ratio chosen for
+    // transparent-until-needed behavior.
+    masterLimiter = ctx.createDynamicsCompressor();
+    masterLimiter.threshold.value = -6;
+    masterLimiter.ratio.value = 8;
+    masterLimiter.knee.value = 12;
+    masterLimiter.attack.value = 0.003;
+    masterLimiter.release.value = 0.12;
+    masterGain.connect(masterLimiter);
+    masterLimiter.connect(ctx.destination);
   }
   if (ctx.state === "suspended") ctx.resume();
   return ctx;
@@ -34,6 +104,35 @@ function getCtx(): AudioContext {
 function getMaster(): GainNode {
   getCtx();
   return masterGain!;
+}
+
+/**
+ * Briefly duck every currently-playing non-stinger track when a stinger fires,
+ * so the punctuation reads against the bed instead of stacking on top of it.
+ * Sidechain feel without an actual sidechain bus.
+ */
+function duckForStinger(stingerGain: GainNode) {
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  const duckTo = 0.45;     // ~ -7 dB
+  const attack = 0.06;
+  const hold = 0.25;
+  const release = 0.35;
+  for (const g of activeFileGains) {
+    if (g === stingerGain) continue;
+    const cat = activeFileGainCategories.get(g);
+    if (cat === "stinger") continue;
+    try {
+      // Snapshot the current envelope value so the dip doesn't fight any
+      // ongoing fade — the duck reads as a layer over whatever's scheduled.
+      const v = g.gain.value;
+      g.gain.cancelAndHoldAtTime?.(now);
+      g.gain.setValueAtTime(v, now);
+      g.gain.linearRampToValueAtTime(v * duckTo, now + attack);
+      g.gain.setValueAtTime(v * duckTo, now + attack + hold);
+      g.gain.linearRampToValueAtTime(v, now + attack + hold + release);
+    } catch { /* node was already disconnected */ }
+  }
 }
 
 // ─── Volume control ─────────────────────────────────────────────────────────
@@ -220,6 +319,8 @@ interface FilePlaybackOptions {
   fadeInSec?: number;
   /** Fade-out duration (seconds). Default 3.5s. Match crossfadeSec for sequence playback. */
   fadeOutSec?: number;
+  /** Asset category — drives per-category shelf EQ + stinger ducking. */
+  category?: AssetCategory;
 }
 
 async function playAudioFile(
@@ -240,10 +341,22 @@ async function playAudioFile(
   if (pitchRate !== 1) source.playbackRate.value = pitchRate;
   const fileGain = ac.createGain();
   source.connect(fileGain);
-  fileGain.connect(master);
+  // Route through per-category shelf EQ if known; otherwise straight to master.
+  if (opts.category) {
+    fileGain.connect(getCategoryEQ(opts.category));
+    activeFileGainCategories.set(fileGain, opts.category);
+  } else {
+    fileGain.connect(master);
+  }
 
   activeSources.push(source);
   activeFileGains.push(fileGain);
+
+  // When a stinger fires, briefly duck every currently-playing bed track so
+  // the stinger lands as a punctuation rather than a stack.
+  if (opts.category === "stinger") {
+    duckForStinger(fileGain);
+  }
 
   // Fade durations are configurable so sequence playback can request a
   // longer cross-fade window. Defaults match the legacy 1.0s in / 3.5s out.
@@ -291,8 +404,17 @@ async function playAudioFile(
     const offsetSec = rawOffset < buffer.duration - 1 ? rawOffset : 0;
     const playableDur = buffer.duration - offsetSec;
 
-    fileGain.gain.setValueAtTime(0, now);
-    fileGain.gain.linearRampToValueAtTime(1, now + Math.min(fadeIn, playableDur * 0.1));
+    const fadeInDur = Math.min(fadeIn, playableDur * 0.1);
+    if (opts.category === "stinger") {
+      // Exponential fade-in avoids the click that linear-from-zero produces
+      // on the stinger transient. Start from a small non-zero floor since
+      // exponentialRamp can't start at 0.
+      fileGain.gain.setValueAtTime(0.001, now);
+      fileGain.gain.exponentialRampToValueAtTime(1, now + Math.max(0.005, fadeInDur));
+    } else {
+      fileGain.gain.setValueAtTime(0, now);
+      fileGain.gain.linearRampToValueAtTime(1, now + fadeInDur);
+    }
     if (playableDur > fadeOut) {
       fileGain.gain.setValueAtTime(1, now + playableDur - fadeOut);
       fileGain.gain.linearRampToValueAtTime(0, now + playableDur);
@@ -444,6 +566,7 @@ export async function auditionAsset(params: AuditionParams): Promise<number> {
     startOffsetSec,
     fadeInSec: params.fadeInSec,
     fadeOutSec: params.fadeOutSec,
+    category: params.category,
   });
 
   if (durationMs !== null) {
